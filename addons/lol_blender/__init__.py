@@ -9,16 +9,14 @@ from common.i18n.i18n import load_dictionary
 
 # Add-on info
 bl_info = {
-    "name": "Basic Add-on Sample",
-    "author": "[You name]",
+    "name": "LoL .skn/.skl Exporter",
+    "author": "alanpq",
     "blender": (3, 5, 0),
-    "version": (0, 0, 1),
-    "description": "This is a template for building addons",
+    "version": (1, 0, 0),
     "warning": "",
-    "doc_url": "[documentation url]",
-    "tracker_url": "[contact email]",
+    'url': 'https://github.com/alanpq/lol-blender',
     "support": "COMMUNITY",
-    "category": "3D View"
+    "category": "Import-Export",
 }
 
 _addon_properties = {}
