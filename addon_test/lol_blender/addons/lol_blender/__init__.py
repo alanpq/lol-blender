@@ -1,22 +1,24 @@
 import bpy
 
-from addons.lol_blender.config import __addon_name__
-from addons.lol_blender.i18n.dictionary import dictionary
-from common.class_loader import auto_load
-from common.class_loader.auto_load import add_properties, remove_properties
-from common.i18n.dictionary import common_dictionary
-from common.i18n.i18n import load_dictionary
+from lol_blender.addons.lol_blender.config import __addon_name__
+from lol_blender.addons.lol_blender.i18n.dictionary import dictionary
+from lol_blender.common.class_loader import auto_load
+from lol_blender.common.class_loader.auto_load import add_properties, remove_properties
+from lol_blender.common.i18n.dictionary import common_dictionary
+from lol_blender.common.i18n.i18n import load_dictionary
 
 # Add-on info
 bl_info = {
-    "name": "LoL .skn/.skl Exporter",
-    "author": "alanpq",
+    "name": "Basic Add-on Sample",
+    "author": "[You name]",
     "blender": (3, 5, 0),
-    "version": (1, 0, 0),
+    "version": (0, 0, 1),
+    "description": "This is a template for building addons",
     "warning": "",
-    'url': 'https://github.com/alanpq/lol-blender',
+    "doc_url": "[documentation url]",
+    "tracker_url": "[contact email]",
     "support": "COMMUNITY",
-    "category": "Import-Export",
+    "category": "3D View"
 }
 
 _addon_properties = {}

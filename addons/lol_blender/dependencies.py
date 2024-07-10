@@ -27,6 +27,8 @@ def import_module(module_name, global_name=None, reload=True):
         global_name = module_name
 
     if global_name in modules:
+        print(f"reloading {global_name}")
+        importlib.invalidate_caches()
         importlib.reload(modules[global_name])
     else:
         # Attempt to import the module and assign it to globals dictionary. This allow to access the module under

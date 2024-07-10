@@ -15,18 +15,30 @@ class ExportSkinned(bpy.types.Operator):
 
     output_name: bpy.props.StringProperty(
         name="Output Name", description="Name of the skn/skl files")
+    directory: bpy.props.StringProperty(
+        name="Directory", description="Directory of the file", options={'SKIP_SAVE'})
+
+    def invoke(self, context, event):
+        self.recall_mode = context.object.mode
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self.properties, "output_name", icon="FILE_FOLDER")
+
+    def recall(self):
+        bpy.ops.object.mode_set(mode=self.recall_mode)
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return context.active_object is not None
 
     def execute(self, context: bpy.types.Context):
+        from mathutils import Vector
         addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
         assert isinstance(addon_prefs, LOLPrefs)
-        # use operator
-        # bpy.ops.transform.resize(value=(2, 2, 2))
-
-        # manipulate the scale directly
 
         obj = context.active_object
 
@@ -44,8 +56,17 @@ class ExportSkinned(bpy.types.Operator):
             # for tri in obj.data.loop_triangles:
             #     print(tri.vertices[0], tri.vertices[1], tri.vertices[2])
             l = modules["league_toolkit"]
+            filepath = self.properties.directory
+            vertices = list(
+                map(lambda v: l.Vertex(list(v.co.xzy), list((v.normal + v.co).xzy - v.co.xzy)), obj.data.vertices))
+            for tri in obj.data.loop_triangles:
+                for i, v in enumerate(tri.vertices):
+                    pos = obj.data.vertices[v].co
+                    vertices[v].normal = list((pos + Vector(tri.split_normals[i])).xzy - pos.xzy)
             l.export_skn(
-                list(map(lambda v: l.Vertex(list(v.co)), obj.data.vertices))
+                bpy.path.ensure_ext(filepath, self.output_name + ".skn"),
+                vertices,
+                list(map(lambda v: list(v.vertices), obj.data.loop_triangles)),
             )
 
         return {'FINISHED'}
