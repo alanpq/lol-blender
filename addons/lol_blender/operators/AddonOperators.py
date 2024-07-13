@@ -3,6 +3,7 @@ import bpy
 from addons.lol_blender.config import __addon_name__
 from addons.lol_blender.dependencies import modules
 from addons.lol_blender.preference.AddonPreferences import LOLPrefs
+from bpy_extras.io_utils import axis_conversion
 
 
 class ExportSkinned(bpy.types.Operator):
@@ -51,6 +52,16 @@ class ExportSkinned(bpy.types.Operator):
                 if modifier.type == 'ARMATURE':
                     print("found armature!")
                     break
+
+            mat = axis_conversion(
+                from_forward='-Y',
+                from_up='Z',
+                to_forward='Z',
+                to_up='Y',
+            ).to_4x4()
+
+            obj.data.transform(mat)
+
             # for i, vert in enumerate(obj.data.vertices):
             #     print(i, vert.index)
             # for tri in obj.data.loop_triangles:
@@ -58,15 +69,16 @@ class ExportSkinned(bpy.types.Operator):
             l = modules["league_toolkit"]
             filepath = self.properties.directory
             vertices = list(
-                map(lambda v: l.Vertex(list(v.co.xzy), list((v.normal + v.co).xzy - v.co.xzy)), obj.data.vertices))
+                map(lambda v: l.Vertex(list(v.co.xyz), list(v.normal.xyz)), obj.data.vertices))
             for tri in obj.data.loop_triangles:
                 for i, v in enumerate(tri.vertices):
-                    pos = obj.data.vertices[v].co
-                    vertices[v].normal = list((pos + Vector(tri.split_normals[i])).xzy - pos.xzy)
+                    vertices[v].normal = list(Vector(tri.split_normals[i]).xyz)
             l.export_skn(
                 bpy.path.ensure_ext(filepath, self.output_name + ".skn"),
                 vertices,
                 list(map(lambda v: list(v.vertices), obj.data.loop_triangles)),
             )
+            
+            obj.data.transform(mat.inverted())
 
         return {'FINISHED'}
