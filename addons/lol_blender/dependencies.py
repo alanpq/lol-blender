@@ -31,6 +31,8 @@ def import_module(module_name, global_name=None, reload=True):
         importlib.invalidate_caches()
         importlib.reload(modules[global_name])
     else:
+        import site
+        sys.path.append(site.getusersitepackages())
         # Attempt to import the module and assign it to globals dictionary. This allow to access the module under
         # the given name, just like the regular import would.
         modules[global_name] = importlib.import_module(module_name)
@@ -46,7 +48,7 @@ def install_pip():
     directory can't be found. Therefore, PIP_REQ_TRACKER needs to be removed from environment variables.
     :return:
     """
-
+    sys.executable = os.environ.get("BLENDER_SYSTEM_PYTHON", sys.executable)
     try:
         # Check if pip is already installed
         subprocess.run([sys.executable, "-m", "pip", "--version"], check=True)
@@ -85,6 +87,7 @@ def install_and_import_module(module_name, package_name=None, global_name=None):
     environ_copy = dict(os.environ)
     environ_copy["PYTHONNOUSERSITE"] = "1"
 
+    sys.executable = os.environ.get("BLENDER_SYSTEM_PYTHON", sys.executable)
     subprocess.run([sys.executable, "-m", "pip", "install", "--force-reinstall", package_name], check=True,
                    env=environ_copy)
 

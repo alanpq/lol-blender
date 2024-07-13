@@ -47,7 +47,7 @@ class LOLPrefs(AddonPreferences):
     wheel_path: StringProperty(
         name="Wheel Path",
         subtype='FILE_PATH',
-        default='X:\\Documents\\Projects\\lol-blender\\bindings\\target\\wheels\\league_toolkit-0.1.0-cp311-none-win_amd64.whl',
+        default=os.environ.get("__LOL_WHEEL_PATH", 'X:\\Documents\\Projects\\lol-blender\\bindings\\target\\wheels\\league_toolkit-0.1.0-cp311-none-win_amd64.whl'),
     )
 
     toolkit_version: StringProperty(name="Toolkit Version", get=get_toolkit_lib)

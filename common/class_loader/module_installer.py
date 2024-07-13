@@ -31,6 +31,10 @@ def install_if_missing(package):
 
 
 def extract_blender_version(blender_exe_path: str):
+    env = os.environ.get("BLENDER_VERSION")
+    if env:
+        return env
+
     folder_path = os.path.dirname(blender_exe_path)
     for version in ["2.93", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "4.0", "4.1", "4.2"]:
         if os.path.exists(os.path.join(folder_path, version)):
@@ -67,8 +71,10 @@ def install_fake_bpy(blender_path: str):
 
 
 def default_blender_addon_path(blender_path: str):
+    if os.environ.get("__BLENDER_ADDON_PATH"):
+        return os.environ.get("__BLENDER_ADDON_PATH")
     assert os.path.exists(blender_path) and blender_path.endswith(
-        "blender.exe"), "Invalid blender path: " + blender_path + "! Please provide a valid blender path pointing to the blender.exe."
+        "blender.exe" if os.name == "nt" else "blender"), "Invalid blender path: " + blender_path + "! Please provide a valid blender path pointing to the blender.exe."
     blender_version = extract_blender_version(blender_path)
     assert blender_version is not None, "Blender version not found in path: " + blender_path
     new_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons_core")

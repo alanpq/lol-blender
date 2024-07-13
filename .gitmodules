@@ -1,0 +1,3 @@
+[submodule "league-toolkit"]
+	path = league-toolkit
+	url = https://github.com/LeagueToolkit/league-toolkit.git

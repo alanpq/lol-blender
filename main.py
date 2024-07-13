@@ -36,7 +36,7 @@ from common.class_loader.module_installer import install_if_missing, install_fak
 ACTIVE_ADDON = "lol_blender"
 
 # The path of the blender executable. Blender2.93 is the minimum version required
-BLENDER_EXE_PATH = "C:/Program Files/Blender Foundation/Blender 4.1/blender.exe"
+BLENDER_EXE_PATH = os.environ.get("BLENDER_PATH", "C:/Program Files/Blender Foundation/Blender 4.1/blender.exe")
 
 # The path of the blender addon folder
 BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
@@ -157,7 +157,7 @@ def start_test(init_file, addon_name, enable_watch=True):
         atexit.register(exit_handler)
         try:
             subprocess.call(
-                [BLENDER_EXE_PATH, "--python-expr",
+                [BLENDER_EXE_PATH, "--python-use-system-env --python-expr",
                  f"import bpy\nbpy.ops.preferences.addon_enable(module=\"{addon_name}\")"])
         finally:
             exit_handler()

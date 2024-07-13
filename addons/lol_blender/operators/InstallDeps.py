@@ -19,7 +19,10 @@ class LOL_OT_install_dependencies(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            install_pip()
+            try:
+                install_pip()
+            except:
+                pass
             for dependency in dependencies:
                 pkg = dependency.package
                 if dependency.module == "league_toolkit":
