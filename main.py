@@ -51,7 +51,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_RELEASE_DIR = os.path.join(PROJECT_ROOT, "dist/")
 
 # The default test release dir. Must not within the current workspace
-TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_test/")
+TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, ".lolblender/")
 
 addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 
