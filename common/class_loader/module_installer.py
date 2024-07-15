@@ -30,17 +30,17 @@ def install_if_missing(package):
         install(package)
 
 
-def extract_blender_version(blender_exe_path: str):
+def extract_blender_version(blender_path: str):
     env = os.environ.get("BLENDER_VERSION")
     if env:
         return env
 
-    folder_path = os.path.dirname(blender_exe_path)
+    folder_path = os.path.dirname(blender_path)
     for version in ["2.93", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "4.0", "4.1", "4.2"]:
         if os.path.exists(os.path.join(folder_path, version)):
             return version
     pattern = r'\d+\.?\d+'
-    matches = re.findall(pattern, blender_exe_path)
+    matches = re.findall(pattern, blender_path)
     for match in matches[::-1]:
         if os.path.exists(os.path.join(folder_path, match)):
             return match

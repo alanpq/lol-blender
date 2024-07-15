@@ -36,10 +36,10 @@ from common.class_loader.module_installer import install_if_missing, install_fak
 ACTIVE_ADDON = "lol_blender"
 
 # The path of the blender executable. Blender2.93 is the minimum version required
-BLENDER_EXE_PATH = os.environ.get("BLENDER_PATH", "C:/Program Files/Blender Foundation/Blender 4.1/blender.exe")
+BLENDER_PATH = os.environ.get("BLENDER_PATH", "C:/Program Files/Blender Foundation/Blender 4.1/blender.exe")
 
 # The path of the blender addon folder
-BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
+BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_PATH)
 # You can override the default path by setting the path manually
 # BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 
@@ -48,7 +48,7 @@ BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # The default release dir. Must not within the current workspace
-DEFAULT_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_release/")
+DEFAULT_RELEASE_DIR = os.path.join(PROJECT_ROOT, "dist/")
 
 # The default test release dir. Must not within the current workspace
 TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_test/")
@@ -66,7 +66,7 @@ _ADDONS_FOLDER = "addons"
 ADDON_ROOT = os.path.join(PROJECT_ROOT, _ADDONS_FOLDER)
 
 install_if_missing("watchdog")
-install_fake_bpy(BLENDER_EXE_PATH)
+install_fake_bpy(BLENDER_PATH)
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -157,7 +157,7 @@ def start_test(init_file, addon_name, enable_watch=True):
         atexit.register(exit_handler)
         try:
             subprocess.call(
-                [BLENDER_EXE_PATH, "--python-use-system-env --python-expr",
+                [BLENDER_PATH, "--python-use-system-env --python-expr",
                  f"import bpy\nbpy.ops.preferences.addon_enable(module=\"{addon_name}\")"])
         finally:
             exit_handler()
@@ -181,16 +181,16 @@ def start_test(init_file, addon_name, enable_watch=True):
                                                                          __addon_md5__signature__).replace("\\", "/"))
 
     try:
-        subprocess.call([BLENDER_EXE_PATH, "--python-expr", python_script])
+        subprocess.call([BLENDER_PATH, "--python-expr", python_script])
     finally:
         exit_handler()
 
 
 def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
-    # if release dir is under PROJECT_ROOT, it's not allowed
-    if is_subdirectory(release_dir, PROJECT_ROOT):
-        raise ValueError("Invalid release dir:", release_dir,
-                         "Please set a release/test dir outside the current workspace")
+    # # if release dir is under PROJECT_ROOT, it's not allowed
+    # if is_subdirectory(release_dir, PROJECT_ROOT):
+    #     raise ValueError("Invalid release dir:", release_dir,
+    #                      "Please set a release/test dir outside the current workspace")
 
     if not bool(addon_namespace_pattern.match(addon_name)):
         raise ValueError("InValid addon_name:", addon_name, "Please name it as a python package name")
