@@ -38,14 +38,22 @@ class ExportSkinned(bpy.types.Operator):
         return context.active_object is not None
     
 
-    def export_armature(self, context: bpy.types.Context, l: Any, armature: bpy.types.Object):
+    def export_armature(self, context: bpy.types.Context, l: Any, armature: bpy.types.Object, mat):
         print("found armature!")
         print(armature)
         # return
         filepath = self.properties.directory
+
+        print("mat: ", mat)
+
+        def map_bone(b: bpy.types.Bone):
+            parent = "" if b.parent is None else b.parent.name
+            return (b.name, l.Bone(parent, b.matrix_local))
+
+
         l.export_skl(
             bpy.path.ensure_ext(filepath, self.output_name + ".skl"),
-            dict(map(lambda b: (b.name, l.Bone("") if b.parent is None else l.Bone(b.parent.name)), armature.data.bones)),
+            dict(map(map_bone, armature.data.bones)),
         )
         # for bone in armature.data.bones:
             # if bone.parent is None:
@@ -63,11 +71,6 @@ class ExportSkinned(bpy.types.Operator):
 
         if obj.type == "MESH":
             l = modules["league_toolkit"]
-            # Armatures need to be exported and skinned meshes enabled to create a skinned mesh node
-            armature = obj.find_armature()
-            if armature:
-                self.export_armature(context, l, armature)
-                # return {'FINISHED'}
 
             mat = axis_conversion(
                 from_forward='-Y',
@@ -77,6 +80,13 @@ class ExportSkinned(bpy.types.Operator):
             ).to_4x4()
 
             obj.data.transform(mat)
+
+            
+            # Armatures need to be exported and skinned meshes enabled to create a skinned mesh node
+            armature = obj.find_armature()
+            if armature:
+                self.export_armature(context, l, armature, mat)
+                # return {'FINISHED'}
 
             # for i, vert in enumerate(obj.data.vertices):
             #     print(i, vert.index)

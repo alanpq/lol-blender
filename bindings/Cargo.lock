@@ -168,6 +168,7 @@ dependencies = [
 name = "league_toolkit"
 version = "0.1.0"
 dependencies = [
+ "glam",
  "league-toolkit",
  "pyo3",
 ]
