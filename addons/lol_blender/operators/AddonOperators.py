@@ -1,3 +1,4 @@
+from typing import Any
 import bpy
 
 from addons.lol_blender.config import __addon_name__
@@ -35,6 +36,21 @@ class ExportSkinned(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return context.active_object is not None
+    
+
+    def export_armature(self, context: bpy.types.Context, l: Any, armature: bpy.types.Object):
+        print("found armature!")
+        print(armature)
+        # return
+        filepath = self.properties.directory
+        l.export_skl(
+            bpy.path.ensure_ext(filepath, self.output_name + ".skl"),
+            dict(map(lambda b: (b.name, l.Bone("") if b.parent is None else l.Bone(b.parent.name)), armature.data.bones)),
+        )
+        # for bone in armature.data.bones:
+            # if bone.parent is None:
+                # print(bone, '->', bone.)
+        
 
     def execute(self, context: bpy.types.Context):
         from mathutils import Vector
@@ -46,12 +62,12 @@ class ExportSkinned(bpy.types.Operator):
         # TODO: handle armature selected instead
 
         if obj.type == "MESH":
+            l = modules["league_toolkit"]
             # Armatures need to be exported and skinned meshes enabled to create a skinned mesh node
-            for modifier in obj.modifiers:
-                # We only need to find one armature to know it should be an armature node
-                if modifier.type == 'ARMATURE':
-                    print("found armature!")
-                    break
+            armature = obj.find_armature()
+            if armature:
+                self.export_armature(context, l, armature)
+                # return {'FINISHED'}
 
             mat = axis_conversion(
                 from_forward='-Y',
@@ -66,7 +82,6 @@ class ExportSkinned(bpy.types.Operator):
             #     print(i, vert.index)
             # for tri in obj.data.loop_triangles:
             #     print(tri.vertices[0], tri.vertices[1], tri.vertices[2])
-            l = modules["league_toolkit"]
             filepath = self.properties.directory
             vertices = list(
                 map(lambda v: l.Vertex(list(v.co.xyz), list(v.normal.xyz)), obj.data.vertices))
