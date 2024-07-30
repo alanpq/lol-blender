@@ -91,19 +91,21 @@ fn export_skn(
 struct Bone {
     #[pyo3(get, set)]
     parent: Option<String>,
-    matrix_local: Mat4,
+    ibm: Mat4,
+    local: Mat4,
 }
 
 #[pymethods]
 impl Bone {
     #[new]
-    fn py_new(parent: String, matrix_local: Mat4) -> Self {
+    fn py_new(parent: String, local: Mat4, ibm: Mat4) -> Self {
         Self {
             parent: match parent.is_empty() {
                 true => None,
                 false => Some(parent),
             },
-            matrix_local,
+            ibm,
+            local,
         }
     }
 }
@@ -166,15 +168,16 @@ fn export_skl(path: PathBuf, bones: HashMap<String, PyRef<'_, Bone>>) -> PyResul
     let mut joints = bones
         .into_iter()
         .map(|(name, bone)| {
-            let local_transform = glam::Mat4::from_cols_array_2d(&bone.matrix_local).transpose();
+            let local_transform = glam::Mat4::from_cols_array_2d(&bone.local).transpose();
+            let ibm = glam::Mat4::from_cols_array_2d(&bone.ibm).transpose();
 
             println!("mat: {:?}", local_transform.to_scale_rotation_translation());
             (
                 name.clone(),
                 (
                     joint::Builder::new(name)
-                        // .with_local_transform(local_transform.inverse())
-                        .with_inverse_bind_transform(local_transform.inverse()),
+                        .with_local_transform(local_transform)
+                        .with_inverse_bind_transform(ibm),
                     bone.parent.clone(),
                 ),
             )

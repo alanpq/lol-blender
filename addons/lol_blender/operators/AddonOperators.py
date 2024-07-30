@@ -4,6 +4,7 @@ import bpy
 from addons.lol_blender.config import __addon_name__
 from addons.lol_blender.dependencies import modules
 from addons.lol_blender.preference.AddonPreferences import LOLPrefs
+import mathutils
 from bpy_extras.io_utils import axis_conversion
 
 
@@ -48,7 +49,10 @@ class ExportSkinned(bpy.types.Operator):
 
         def map_bone(b: bpy.types.Bone):
             parent = "" if b.parent is None else b.parent.name
-            return (b.name, l.Bone(parent, b.matrix_local))
+            ibm = b.matrix_local
+            # local = b.matrix.to_4x4() @ mat
+            local = mathutils.Matrix()
+            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted()))
 
 
         l.export_skl(
