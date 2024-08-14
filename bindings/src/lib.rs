@@ -25,13 +25,28 @@ struct Vertex {
     pos: Vec3,
     #[pyo3(get, set)]
     normal: Vec3,
+
+    #[pyo3(get, set)]
+    blend_indices: [u8; 4],
+    #[pyo3(get, set)]
+    blend_weights: [f32; 4],
 }
 
 #[pymethods]
 impl Vertex {
     #[new]
-    fn py_new(pos: Vec3, normal: Vec3) -> Self {
-        Self { pos, normal }
+    fn py_new(
+        pos: Vec3,
+        normal: Vec3,
+        blend_indices: Option<[u8; 4]>,
+        blend_weights: Option<[f32; 4]>,
+    ) -> Self {
+        Self {
+            pos,
+            normal,
+            blend_indices: blend_indices.unwrap_or_default(),
+            blend_weights: blend_weights.unwrap_or_default(),
+        }
     }
 }
 
@@ -42,8 +57,8 @@ impl Vertex {
             // POSITION (12)
             v.extend_from_slice(&i.to_le_bytes())
         }
-        v.extend([0_u8; 4]); // BLEND_INDEX (4)
-        v.extend([0_u8; 16]); // BLEND_WEIGHT (16)
+        v.extend(self.blend_indices); // BLEND_INDEX (4)
+        v.extend(self.blend_weights.iter().flat_map(|w| w.to_le_bytes())); // BLEND_WEIGHT (16)
 
         for i in self.normal {
             // NORMAL (12)
@@ -58,8 +73,11 @@ fn export_skn(
     path: PathBuf,
     vertices: Vec<PyRef<'_, Vertex>>,
     triangles: Vec<[i64; 3]>,
+    influences: Option<Vec<[(i16, f32); 4]>>,
 ) -> PyResult<()> {
     // println!("ve!rts: {vertices:?}");
+
+    println!("influences: {influences:?}");
 
     let mut buf = Vec::new();
     for v in vertices {
@@ -93,12 +111,13 @@ struct Bone {
     parent: Option<String>,
     ibm: Mat4,
     local: Mat4,
+    is_influence: bool,
 }
 
 #[pymethods]
 impl Bone {
     #[new]
-    fn py_new(parent: String, local: Mat4, ibm: Mat4) -> Self {
+    fn py_new(parent: String, local: Mat4, ibm: Mat4, is_influence: bool) -> Self {
         Self {
             parent: match parent.is_empty() {
                 true => None,
@@ -106,6 +125,7 @@ impl Bone {
             },
             ibm,
             local,
+            is_influence,
         }
     }
 }
@@ -161,7 +181,10 @@ fn topological_sort(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String>>
 }
 
 #[pyfunction]
-fn export_skl(path: PathBuf, bones: HashMap<String, PyRef<'_, Bone>>) -> PyResult<()> {
+fn export_skl(
+    path: PathBuf,
+    bones: HashMap<String, PyRef<'_, Bone>>,
+) -> PyResult<HashMap<String, i16>> {
     let mut skl = RigResource::builder("skeleton_name", "skeleton_asset_name");
 
     let orig_bone_count = bones.len();
@@ -177,7 +200,8 @@ fn export_skl(path: PathBuf, bones: HashMap<String, PyRef<'_, Bone>>) -> PyResul
                 (
                     joint::Builder::new(name)
                         .with_local_transform(local_transform)
-                        .with_inverse_bind_transform(ibm),
+                        .with_inverse_bind_transform(ibm)
+                        .with_influence(bone.is_influence),
                     bone.parent.clone(),
                 ),
             )
@@ -245,9 +269,19 @@ fn export_skl(path: PathBuf, bones: HashMap<String, PyRef<'_, Bone>>) -> PyResul
 
     let mut file = std::fs::File::create(path).map(BufWriter::new).unwrap();
 
-    skl.build().to_writer(&mut file).unwrap();
+    let rig = skl.build();
 
-    Ok(())
+    // rig.influences()
+
+    rig.to_writer(&mut file).unwrap();
+    let joint_map = rig
+        .influences()
+        .iter()
+        .copied()
+        .map(|i| (rig.joints()[i as usize].name().to_string(), i))
+        .collect();
+    println!("joint_map: {joint_map:?}");
+    Ok(joint_map)
 }
 
 #[pymodule]
