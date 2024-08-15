@@ -4,10 +4,12 @@ on:
     branches:
       - main
 jobs:
-  release:
+
+  release-addon:
+    needs: [bindings-linux]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Bundle Add-on
@@ -31,6 +33,30 @@ jobs:
           asset_path: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
           asset_name: lol-blender-${{steps.release.outputs.tag_name}}.zip
           asset_content_type: application/zip
+
+  bindings-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, i686]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          architecture: x64
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist/ -m bindings/Cargo.toml
+      - name: Upload wheels
+        uses: alexellis/upload-assets@0.4.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["./dist/*.whl"]'
 permissions:
   contents: write
   pull-requests: read
