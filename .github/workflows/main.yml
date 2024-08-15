@@ -13,7 +13,7 @@ jobs:
       - name: Bundle Add-on
         run: python release.py --no-zip
       - id: release
-        uses: rymndhng/release-on-push-action@master
+        uses: dctrotz/release-on-push-action@fixupload_url
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -23,9 +23,14 @@ jobs:
       - name: Zip Add-on
         run: python release.py --zip-only lol-blender-${{steps.release.outputs.tag_name}}
       - name: Upload Release
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
+          asset_name: lol-blender-${{steps.release.outputs.tag_name}}.zip
+          asset_content_type: application/zip
 permissions:
   contents: write
   pull-requests: read
