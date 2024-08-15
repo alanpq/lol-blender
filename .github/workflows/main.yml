@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Bundle Add-on
         run: python release.py --no-zip
       - id: release
