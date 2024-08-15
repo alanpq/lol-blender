@@ -21,7 +21,7 @@ jobs:
       - name: Patch Add-on Version
         run: python release.py --tag ${{steps.release.outputs.version}}
       - name: Zip Add-on
-        run: python release.py --zip-only
+        run: python release.py --zip-only lol-blender-${{steps.release.outputs.tag_name}}
       - name: Upload Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
