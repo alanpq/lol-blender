@@ -11,7 +11,8 @@ def get_version_tag():
         tag_idx = args.index("--tag")
     except:
         return None
-    parts = args[tag_idx+1].split('.')
+    version = args[tag_idx+1].replace("v", "").strip()
+    parts = version.split('.')
     assert len(parts) == 3
     return list(map(int, parts))
 
