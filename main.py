@@ -205,19 +205,19 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     os.mkdir(release_folder)
     shutil.copyfile(target_init_file, os.path.join(release_folder, "__init__.py"))
 
-    # 将插件文件夹复制到发布目录
+    # Copy the plugin folder to the publish directory
     shutil.copytree(os.path.join(ADDON_ROOT, addon_name), os.path.join(release_folder, _ADDONS_FOLDER, addon_name))
-    shutil.copyfile(os.path.join(ADDON_ROOT, "__init__.py"),
-                    os.path.join(release_folder, _ADDONS_FOLDER, "__init__.py"))
+    shutil.copyfile(os.path.join(ADDON_ROOT, "__init__.py"), os.path.join(release_folder, _ADDONS_FOLDER, "__init__.py"))
 
     all_py_files = search_files(os.path.join(ADDON_ROOT, addon_name), {".py"})
-    # 对插件文件夹中的每一个py文件进行分析，找到每个py文件中依赖的其他py文件
+    # Analyze each py file in the plugin folder and find other py files that each py file depends on
     visited_py_files = set()
     for py_file in all_py_files:
         visited_py_files.add(os.path.abspath(py_file))
-    # 注意不要漏掉__init__.py文件
+    # Be careful not to miss the __init__.py file
     visited_py_files.add(os.path.abspath(os.path.join(ADDON_ROOT, "__init__.py")))
 
+    print("Bundling dependencies...")
     dependencies = find_all_dependencies(list(visited_py_files), PROJECT_ROOT)
     for dependency in dependencies:
         dependency = os.path.abspath(dependency)
@@ -229,11 +229,14 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
             os.makedirs(os.path.dirname(target_path))
         shutil.copy(dependency, os.path.join(release_folder, os.path.relpath(dependency, PROJECT_ROOT)))
 
+    print(f"Bundled {len(visited_py_files)} dependencies.\n")
+
     remove_pyc_files(release_folder)
     removed_path = 1
     while removed_path > 0:
         removed_path = remove_empty_folders(release_folder)
 
+    print("Enhancing module imports...\n")
     enhance_import_for_py_files(release_folder)
 
     real_addon_name = "{addon_name}_{timestamp}".format(addon_name=release_folder,
@@ -245,10 +248,39 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     # zip the addon
     if need_zip:
         zip_folder(release_folder, real_addon_name)
-        print("Add on released:", released_addon_path)
-
+        print("Add-on zip created:", released_addon_path)
     return released_addon_path
 
+
+bl_info_regex = re.compile("^\s*bl_info\s*=\s*{\s*$")
+bl_info_version_regex = re.compile('"version":\(\d*,\d*,\d*,?\),\s*')
+bl_info_end_regex = re.compile("^\s*}\s*$")
+
+def set_plugin_version(init_py_path: str, major: int, minor: int, patch: int):
+    found_version = False
+    lines = []
+
+    with open(init_py_path, mode="r", encoding="utf-8") as f:
+        in_bl_info_block = False
+        lines = f.readlines()
+        for i, line in enumerate(lines):
+            if in_bl_info_block:
+                if re.fullmatch(bl_info_end_regex, line):
+                    break
+
+                if re.fullmatch(bl_info_version_regex, line.replace(" ", "")):
+                    found_version = True
+                    lines[i] = f'    "version": ({major}, {minor}, {patch}),\n'
+                    break
+            else:
+                if re.fullmatch(bl_info_regex, line):
+                    in_bl_info_block = True
+
+    if not found_version:
+        raise ValueError("Invalid addon __init__.py file: Could not locate bl_info['version'].")
+
+    with open(init_py_path, mode="w", encoding="utf-8") as f:
+        f.writelines(lines)
 
 # pyc files are auto generated, need to be removed before release
 def remove_pyc_files(release_folder: str):

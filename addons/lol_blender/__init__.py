@@ -8,6 +8,8 @@ from common.i18n.dictionary import common_dictionary
 from common.i18n.i18n import load_dictionary
 
 # Add-on info
+# NOTE: the bl_info section is edited by the release.py script,
+#       which uses basic regex, DO NOT mess with this bit too much :) 
 bl_info = {
     "name": "LoL .skn/.skl Exporter",
     "author": "alanpq",
@@ -18,6 +20,7 @@ bl_info = {
     "support": "COMMUNITY",
     "category": "Import-Export",
 }
+# ^ release.py script should stop searching for stuff from this point on
 
 _addon_properties = {}
 
