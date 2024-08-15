@@ -3,16 +3,19 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 > **NOTE:** This plugin is *extremely* early in development, see [io_scene_lol](https://github.com/Daniil-SV/io_scene_lol) for a more developed importer/exporter.
 
 # Features
-lol-blender is currently too early in development for a feature list to be useful.
+|     ✅     |        ⚠️        |    🛠️    |
+| :-------: | :-------------: | :-----: |
+| Supported | Partial support | Planned |
 
-# Roadmap
-- Skinned mesh (.skn) import/export
-  - w/ material/textures
-- Skeleton (.skl) import/export
-- Animation (.anm) import/export
-- Static mesh (.sco/.scb) import/export
-- Map geometry (.mapgeo) import/export
-  - w/ material/textures
+## Scene I/O
+|                             | Import | Export |
+| :-------------------------: | :----: | :----: |
+|   **Skinned Mesh** (.skn)   |   ⚠️    |   🛠️    |
+|     **Skeleton** (.skl)     |   ⚠️    |   🛠️    |
+|    **Animation** (.anm)     |   🛠️    |   🛠️    |
+| **Static mesh** (.sco/.scb) |   🛠️    |   🛠️    |
+| **Map geometry** (.mapgeo)  |   🛠️    |   🛠️    |
+
 
 # Contributing
 ## Prerequisites
