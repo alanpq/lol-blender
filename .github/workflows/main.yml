@@ -1,0 +1,30 @@
+name: Release on Merge To Master
+on:
+  push:
+    branches:
+      - master
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Bundle Add-on
+        run: python release.py --no-zip
+      - id: release
+        uses: rymndhng/release-on-push-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          bump_version_scheme: minor
+      - name: Patch Add-on Version
+        run: python release.py --tag ${{steps.release.outputs.version}}
+      - name: Zip Add-on
+        run: python release.py --zip-only
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
+permissions:
+  contents: write
+  pull-requests: read
