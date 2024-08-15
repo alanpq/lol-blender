@@ -2,7 +2,7 @@ name: Release on Merge To Master
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   release:
     runs-on: ubuntu-latest
