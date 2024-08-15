@@ -70,14 +70,25 @@ def install_fake_bpy(blender_path: str):
                 install("fake-bpy-module-latest")
 
 
+cached_blender_addon_path = None
 def default_blender_addon_path(blender_path: str):
+    global cached_blender_addon_path
+    if cached_blender_addon_path:
+        return cached_blender_addon_path
+    
     if os.environ.get("__BLENDER_ADDON_PATH"):
-        return os.environ.get("__BLENDER_ADDON_PATH")
+        cached_blender_addon_path = os.environ.get("__BLENDER_ADDON_PATH")
+        return cached_blender_addon_path
+    
     assert os.path.exists(blender_path) and blender_path.endswith(
         "blender.exe" if os.name == "nt" else "blender"), "Invalid blender path: " + blender_path + "! Please provide a valid blender path pointing to the blender.exe."
+    
     blender_version = extract_blender_version(blender_path)
     assert blender_version is not None, "Blender version not found in path: " + blender_path
     new_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons_core")
+
     if os.path.exists(new_path):
-        return new_path
-    return os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
+        cached_blender_addon_path = new_path
+    else:
+        cached_blender_addon_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
+    return cached_blender_addon_path

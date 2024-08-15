@@ -38,11 +38,6 @@ ACTIVE_ADDON = "lol_blender"
 # The path of the blender executable. Blender2.93 is the minimum version required
 BLENDER_PATH = os.environ.get("BLENDER_PATH", "C:/Program Files/Blender Foundation/Blender 4.1/blender.exe")
 
-# The path of the blender addon folder
-BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_PATH)
-# You can override the default path by setting the path manually
-# BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
-
 # The files to be ignored when release the addon
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -147,7 +142,7 @@ bpy.app.handlers.load_post.append(register_watch_update_tick)
 
 def start_test(init_file, addon_name, enable_watch=True):
     update_addon_for_test(init_file, addon_name)
-    test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
+    test_addon_path = os.path.join(default_blender_addon_path(BLENDER_PATH), addon_name)
 
     if not enable_watch:
         def exit_handler():
@@ -483,7 +478,7 @@ def update_addon_for_test(init_file, addon_name):
                                release_dir=TEST_RELEASE_DIR, need_zip=False)
     executable_path = os.path.join(os.path.dirname(addon_path), addon_name)
 
-    test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
+    test_addon_path = os.path.join(default_blender_addon_path(BLENDER_PATH), addon_name)
     if os.path.exists(test_addon_path):
         shutil.rmtree(test_addon_path)
     shutil.copytree(executable_path, test_addon_path)
