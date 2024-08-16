@@ -39,7 +39,7 @@ jobs:
         with:
           release-url: ${{ steps.release.outputs.upload_url }}
           github-token: ${{github.token}}
-          pattern: 'wheels*/*.whl"'
+          pattern: './**/*.whl"'
 
   bindings-linux:
     runs-on: ubuntu-latest
