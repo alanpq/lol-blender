@@ -6,7 +6,7 @@ on:
 jobs:
 
   release-addon:
-    needs: [bindings-linux]
+    needs: [bindings-linux, bindings-windows, bindings-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: 3.11
-          architecture: x64
+          architecture: ${{matrix.target}}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -65,6 +65,54 @@ jobs:
         with:
           name: wheels-linux-${{matrix.target}}
           path: dist/*.whl
+  
+  bindings-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          architecture: ${{ matrix.target }}
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist/ -m bindings/Cargo.toml 
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows-${{ matrix.target }}
+          path: dist/*.whl
+  bindings-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [x86_64, universal2-apple-darwin]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          architecture: x64
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist/ -m bindings/Cargo.toml 
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-${{ matrix.target }}
+          path: dist/*.whl
+      
 permissions:
   contents: write
   pull-requests: read
