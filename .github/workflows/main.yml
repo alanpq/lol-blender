@@ -1,4 +1,4 @@
-name: Release on Merge To Master
+name: Release
 on:
   push:
     branches:
@@ -9,6 +9,7 @@ jobs:
     needs: [bindings-linux]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -31,8 +32,14 @@ jobs:
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
-          asset_name: lol-blender-${{steps.release.outputs.tag_name}}.zip
+          asset_name: addon-lol-blender-${{steps.release.outputs.tag_name}}.zip
           asset_content_type: application/zip
+      - uses: actions/download-artifact@v4
+      - name: Upload Release Wheels
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          gh release upload ${{steps.release.outputs.tag_name}} ./wheels*/*.whl
 
   bindings-linux:
     runs-on: ubuntu-latest
@@ -41,6 +48,8 @@ jobs:
         target: [x86_64, i686]
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - uses: actions/setup-python@v4
         with:
           python-version: 3.9
@@ -52,11 +61,10 @@ jobs:
           manylinux: auto
           args: --release --out dist/ -m bindings/Cargo.toml
       - name: Upload wheels
-        uses: alexellis/upload-assets@0.4.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: actions/upload-artifact@v4
         with:
-          asset_paths: '["./dist/*.whl"]'
+          name: wheels-linux-${{matrix.target}}
+          path: dist/*.whl
 permissions:
   contents: write
   pull-requests: read
