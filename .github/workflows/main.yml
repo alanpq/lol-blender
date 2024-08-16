@@ -2,7 +2,7 @@ name: Release on Merge To Master
 on:
   push:
     branches:
-      - gh-actions
+      - main
 jobs:
 
   release-addon:
@@ -31,7 +31,7 @@ jobs:
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: dist/lol-blender-${{steps.release.outputs.tag_name}}.zip
-          asset_name: lol-blender-${{steps.release.outputs.tag_name}}.zip
+          asset_name: addon-lol-blender-${{steps.release.outputs.tag_name}}.zip
           asset_content_type: application/zip
       - uses: actions/download-artifact@v4
       - run: ls ./wheel*/
