@@ -54,11 +54,11 @@ jobs:
           manylinux: auto
           args: --release --out dist/ -m bindings/Cargo.toml
       - name: Upload wheels
-        uses: alexellis/upload-assets@0.4.0
+        uses: alexellis/upload-assets@0.4.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["./dist/*.whl"]'
+          asset_paths: '["dist/*.whl"]'
 permissions:
   contents: write
   pull-requests: read
