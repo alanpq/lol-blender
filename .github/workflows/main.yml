@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - gh-cross-platform
 jobs:
 
   release-addon:
