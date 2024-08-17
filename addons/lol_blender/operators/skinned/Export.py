@@ -136,6 +136,10 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
 
     def export_armature(self, context: bpy.types.Context, l: Any, mat):
         influences = list(map(lambda v: get_influences(v, self.mesh), range(len(self.mesh.data.vertices))))
+
+        # we can't just check if a vertex group exists for a bone, because we cap a vertex's influence count to 4,
+        # which means there can be a bone that would've been the 5th strongest influence on a vertex,
+        # and influence no other vertices - which means that bone should NOT be included in the rig's influence list
         is_influence = {}
         for influence in influences:
             for (bone, _) in influence:
