@@ -441,7 +441,8 @@ class FileUpdateHandler(FileSystemEventHandler):
 
     def on_any_event(self, event):
         source_path = event.src_path
-        if source_path.endswith(".py"):
+        if source_path.endswith(".py") and event.event_type not in ["opened", "closed"]:
+            print(event.event_type, source_path)
             self.has_update = True
 
     def clear_update(self):
@@ -449,7 +450,7 @@ class FileUpdateHandler(FileSystemEventHandler):
 
 
 def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
-    path = PROJECT_ROOT
+    path = os.path.join(PROJECT_ROOT, "addons")
     event_handler = FileUpdateHandler()
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)
