@@ -182,8 +182,8 @@ fn topological_sort(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String>>
 
 #[pyfunction]
 fn export_skl(
-    path: PathBuf,
     bones: HashMap<String, PyRef<'_, Bone>>,
+    path: Option<PathBuf>,
 ) -> PyResult<HashMap<String, i16>> {
     let mut skl = RigResource::builder("skeleton_name", "skeleton_asset_name");
 
@@ -267,13 +267,12 @@ fn export_skl(
     //     println!("[!!] we got {orig_bone_count} bones!");
     // }
 
-    let mut file = std::fs::File::create(path).map(BufWriter::new).unwrap();
-
     let rig = skl.build();
+    if let Some(path) = path {
+        let mut file = std::fs::File::create(path).map(BufWriter::new).unwrap();
+        rig.to_writer(&mut file).unwrap();
+    }
 
-    // rig.influences()
-
-    rig.to_writer(&mut file).unwrap();
     let joint_map = rig
         .influences()
         .iter()
