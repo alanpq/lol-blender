@@ -4,6 +4,11 @@ import platform
 
 from addons.lol_blender.dependencies import *
 
+system_mapping = {
+    'darwin': "macosx",
+    'windows': "win"
+}
+
 class LOL_OT_download_dependencies(bpy.types.Operator):
     bl_idname = "lolblender.download_dependencies"
     bl_label = "Automatically download & install dependencies"
@@ -25,6 +30,8 @@ class LOL_OT_download_dependencies(bpy.types.Operator):
             system = platform.system().lower()
             if len(system) == 0:
                 raise ValueError("Could not determine operating system.")
+            if system in system_mapping:
+                system = system_mapping[system]
             machine = platform.machine().lower()
             if len(machine) == 0:
                 raise ValueError("Could not determine machine architecture.")
