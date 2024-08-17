@@ -15,6 +15,15 @@ pub type Vec3 = [f32; 3];
 pub type Vec4 = [f32; 4];
 pub type Mat4 = [[f32; 4]; 4];
 
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        #[cfg(debug_assertions)] {
+            println!($($arg)*);
+        }
+    };
+}
+
 #[pymodule]
 fn league_toolkit(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(version, m)?)?;

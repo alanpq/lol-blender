@@ -7,6 +7,7 @@ use std::{
 };
 
 use super::Bone;
+use crate::debug;
 
 fn topological_sort(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String>> {
     let mut in_degree: HashMap<String, usize> = HashMap::new();
@@ -72,7 +73,7 @@ pub fn export_skl(
             let local_transform = glam::Mat4::from_cols_array_2d(&bone.local).transpose();
             let ibm = glam::Mat4::from_cols_array_2d(&bone.ibm).transpose();
 
-            println!("mat: {:?}", local_transform.to_scale_rotation_translation());
+            debug!("mat: {:?}", local_transform.to_scale_rotation_translation());
             (
                 name.clone(),
                 (
@@ -92,7 +93,7 @@ pub fn export_skl(
         .collect();
 
     for (name, (_, parent)) in &joints {
-        println!("bone {name:?} -> {parent:?}");
+        debug!("bone {name:?} -> {parent:?}");
         let Some(parent_map) = parent.clone().and_then(|p| child_map.get_mut(&p)) else {
             continue;
         };
@@ -103,7 +104,7 @@ pub fn export_skl(
     let mut processed = 0;
     let nodes = topological_sort(&child_map).unwrap();
     for n in nodes.iter().rev() {
-        println!("- {n}");
+        debug!("- {n}");
         let Some(children) = child_map.remove(n) else {
             continue;
         };
@@ -111,7 +112,7 @@ pub fn export_skl(
             .into_iter()
             .filter_map(|c| joints.remove(&c).map(|j| j.0))
             .collect::<Vec<_>>();
-        println!("  - {children:?}");
+        debug!("  - {children:?}");
         let Some(joint) = joints.get_mut(n) else {
             continue;
         };
@@ -119,10 +120,10 @@ pub fn export_skl(
         joint.0.add_children(children);
     }
 
-    println!("{processed} child bones.");
-    println!("{} root bones.", joints.len());
+    debug!("{processed} child bones.");
+    debug!("{} root bones.", joints.len());
     if orig_bone_count != processed + joints.len() {
-        println!("[!!] we got {orig_bone_count} bones!");
+        debug!("[!!] we got {orig_bone_count} bones!");
     }
 
     for (_, joint) in joints {
@@ -140,9 +141,9 @@ pub fn export_skl(
     //     })
     //     .collect::<Vec<_>>();
 
-    // println!("parsed {} bones", joints.len());
+    // debug!("parsed {} bones", joints.len());
     // if orig_bone_count != joints.len() {
-    //     println!("[!!] we got {orig_bone_count} bones!");
+    //     debug!("[!!] we got {orig_bone_count} bones!");
     // }
 
     let rig = skl.build();
@@ -157,6 +158,6 @@ pub fn export_skl(
         .copied()
         .map(|i| (rig.joints()[i as usize].name().to_string(), i))
         .collect();
-    println!("joint_map: {joint_map:?}");
+    debug!("joint_map: {joint_map:?}");
     Ok(joint_map)
 }

@@ -13,18 +13,14 @@ pub fn export_skn(
     triangles: Vec<[i64; 3]>,
     influences: Option<Vec<[(i16, f32); 4]>>,
 ) -> PyResult<()> {
-    // println!("ve!rts: {vertices:?}");
-
-    println!("influences: {influences:?}");
-
     let mut buf = Vec::new();
     for v in vertices {
         v.push_bytes(&mut buf);
     }
-    // println!("{buf:?}");
+    // debug!("{buf:?}");
     let vert_buf =
         VertexBufferDescription::from(SkinnedMeshVertexType::Basic).into_vertex_buffer(buf);
-    // println!("{vert_buf:?}");
+    // debug!("{vert_buf:?}");
     let mut buf = Vec::new();
 
     for tri in triangles {
