@@ -10,8 +10,8 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 ## Scene I/O
 |                             | Import | Export |
 | :-------------------------: | :----: | :----: |
-|   **Skinned Mesh** (.skn)   |   ⚠️    |   🛠️    |
-|     **Skeleton** (.skl)     |   ⚠️    |   🛠️    |
+|   **Skinned Mesh** (.skn)   |   🛠️    |   ⚠️    |
+|     **Skeleton** (.skl)     |   🛠️    |   ⚠️    |
 |    **Animation** (.anm)     |   🛠️    |   🛠️    |
 | **Static mesh** (.sco/.scb) |   🛠️    |   🛠️    |
 | **Map geometry** (.mapgeo)  |   🛠️    |   🛠️    |
