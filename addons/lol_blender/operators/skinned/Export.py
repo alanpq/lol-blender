@@ -5,7 +5,7 @@ from bpy.props import StringProperty, BoolProperty
 from bpy_extras.io_utils import axis_conversion, ExportHelper
 
 from addons.lol_blender.config import __addon_name__
-from addons.lol_blender.dependencies import modules
+from addons.lol_blender.dependencies import get_modules
 from addons.lol_blender.preference.AddonPreferences import LOLPrefs
 from common.types.framework import ExpandableUi
 
@@ -166,7 +166,7 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
         addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
         assert isinstance(addon_prefs, LOLPrefs)
 
-        l = modules["league_toolkit"]
+        l = get_modules(addon_prefs.wheel_path)["league_toolkit"]
 
         mat = axis_conversion(
             from_forward='-Y',
