@@ -38,7 +38,7 @@ def get_armature_for_mesh(mesh):
         raise RuntimeError("Mesh must have only one armature modifier")
     return modifiers[0].object
 
-def get_mesh_and_armature_from_context(context):
+def get_mesh_and_armature_from_context(context) -> tuple[bpy.types.Object, bpy.types.Object]:
     if len(context.view_layer.objects.selected) == 0:
         raise RuntimeError("At least one object must be selected")
     
@@ -70,7 +70,6 @@ def get_mesh_and_armature_from_context(context):
                 if mesh is not None:
                     raise RuntimeError("Armature must have only one mesh associated")
                 mesh_arm = get_armature_for_mesh(child)
-                print("mesh_arm", mesh_arm)
                 if mesh_arm == armature:
                     mesh = child
     
@@ -137,6 +136,10 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
 
     def export_armature(self, context: bpy.types.Context, l: Any, mat):
         influences = list(map(lambda v: get_influences(v, self.mesh), range(len(self.mesh.data.vertices))))
+
+        # we can't just check if a vertex group exists for a bone, because we cap a vertex's influence count to 4,
+        # which means there can be a bone that would've been the 5th strongest influence on a vertex,
+        # and influence no other vertices - which means that bone should NOT be included in the rig's influence list
         is_influence = {}
         for influence in influences:
             for (bone, _) in influence:
@@ -147,7 +150,7 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
             ibm = b.matrix_local
             # local = b.matrix.to_4x4() @ mat
             local = Matrix()
-            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted(), is_influence[b.name]))
+            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted(), is_influence.get(b.name, False)))
 
 
         # map of blender bone names to league influence joint indices

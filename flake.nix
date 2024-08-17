@@ -112,7 +112,7 @@
             export BLENDER_SYSTEM_PYTHON="$(which python)";
             export PYTHONPATH="$VIRTUAL_ENV/lib/site-packages";
             export PYTHONUSERBASE="$VIRTUAL_ENV";
-            export __LOL_WHEEL_PATH="$FLAKE_ROOT/bindings/target/wheels/league_toolkit-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl";
+            export __LOL_WHEEL_PATH="$FLAKE_ROOT/bindings/target/wheels/league_toolkit-0.1.0-cp310-abi3-manylinux_2_34_x86_64.whl";
             cd -
           '';
 

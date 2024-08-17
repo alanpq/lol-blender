@@ -63,7 +63,7 @@ fn topological_sort(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String>>
 pub fn export_skl(
     bones: HashMap<String, PyRef<'_, Bone>>,
     path: Option<PathBuf>,
-) -> PyResult<HashMap<String, i16>> {
+) -> PyResult<HashMap<String, u8>> {
     let mut skl = RigResource::builder("skeleton_name", "skeleton_asset_name");
 
     let orig_bone_count = bones.len();
@@ -156,7 +156,8 @@ pub fn export_skl(
         .influences()
         .iter()
         .copied()
-        .map(|i| (rig.joints()[i as usize].name().to_string(), i))
+        .enumerate()
+        .map(|(i, joint_idx)| (rig.joints()[joint_idx as usize].name().to_string(), i as _))
         .collect();
     debug!("joint_map: {joint_map:?}");
     Ok(joint_map)
