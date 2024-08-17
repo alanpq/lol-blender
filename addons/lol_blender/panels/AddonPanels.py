@@ -2,7 +2,7 @@ import bpy
 
 from addons.lol_blender.config import __addon_name__
 from addons.lol_blender.dependencies import dependencies, get_modules
-from addons.lol_blender.operators.AddonOperators import ExportSkinned
+from addons.lol_blender.operators.skinned.Export import ExportSkinned
 from addons.lol_blender.operators.DownloadDeps import LOL_OT_download_dependencies
 from common.i18n.i18n import i18n
 
