@@ -38,7 +38,7 @@ def get_armature_for_mesh(mesh):
         raise RuntimeError("Mesh must have only one armature modifier")
     return modifiers[0].object
 
-def get_mesh_and_armature_from_context(context):
+def get_mesh_and_armature_from_context(context) -> tuple[bpy.types.Object, bpy.types.Object]:
     if len(context.view_layer.objects.selected) == 0:
         raise RuntimeError("At least one object must be selected")
     
@@ -70,7 +70,6 @@ def get_mesh_and_armature_from_context(context):
                 if mesh is not None:
                     raise RuntimeError("Armature must have only one mesh associated")
                 mesh_arm = get_armature_for_mesh(child)
-                print("mesh_arm", mesh_arm)
                 if mesh_arm == armature:
                     mesh = child
     
@@ -147,7 +146,7 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
             ibm = b.matrix_local
             # local = b.matrix.to_4x4() @ mat
             local = Matrix()
-            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted(), is_influence[b.name]))
+            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted(), is_influence.get(b.name, False)))
 
 
         # map of blender bone names to league influence joint indices
