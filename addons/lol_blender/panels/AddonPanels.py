@@ -1,12 +1,10 @@
 import bpy
 
 from addons.lol_blender.config import __addon_name__
-from addons.lol_blender.dependencies import dependencies, modules
+from addons.lol_blender.dependencies import dependencies, get_modules
 from addons.lol_blender.operators.AddonOperators import ExportSkinned
-from addons.lol_blender.operators.InstallDeps import LOL_OT_install_dependencies
+from addons.lol_blender.operators.DownloadDeps import LOL_OT_download_dependencies
 from common.i18n.i18n import i18n
-
-from addons.lol_blender.toolkit import get_toolkit
 
 
 class ToolkitPanel(bpy.types.Panel):
@@ -25,21 +23,15 @@ class ToolkitPanel(bpy.types.Panel):
 
         layout = self.layout
 
-        layout.operator(LOL_OT_install_dependencies.bl_idname, icon="CONSOLE")
-        for dependency in dependencies:
-            if not dependency.module in modules:
-                layout.label(text=f"Dependencies not installed!")
-                return
+        modules = get_modules(addon_prefs.wheel_path)
+        league_toolkit = modules.get("league_toolkit", None)
 
-        layout.label(text=i18n("Toolkit Library") + ": ")
-        layout.prop(addon_prefs, "toolkit_path")
-        toolkit = get_toolkit()
-        if len(addon_prefs.toolkit_version) <= 1:
-            layout.label(text="Invalid toolkit library")
-        else:
-            layout.label(text=f"Toolkit version: {toolkit.version}")
-        league_toolkit = modules["league_toolkit"]
-        layout.label(text=f"Real toolkit version: {league_toolkit.version()}")
+        if league_toolkit is None:
+            layout.operator(LOL_OT_download_dependencies.bl_idname, icon="CONSOLE")
+            layout.label(text=f"Dependencies not installed!")
+            return
+            
+        layout.label(text=f"Toolkit version: {league_toolkit.version()}")
         layout.separator()
 
         row = layout.row()

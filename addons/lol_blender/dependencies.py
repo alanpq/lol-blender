@@ -8,11 +8,29 @@ from collections import namedtuple
 Dependency = namedtuple("Dependency", ["module", "package", "name"])
 
 dependencies = (Dependency(module="league_toolkit", package=None, name=None),)
+dependencies_installed = [False]
 
 modules = {}
 
-dependencies_installed = [False]
+default_dep_path = os.path.join(os.path.dirname(__file__), "deps")
 
+def get_modules(wheel_path: str):
+    if len(modules.keys()) != len(dependencies):
+        install_dependencies(wheel_path)
+    return modules
+
+def install_dependencies(wheel_path: str):
+    try:
+        install_pip()
+    except:
+        pass
+    for dependency in dependencies:
+        pkg = dependency.package
+        if dependency.module == "league_toolkit":
+            pkg = wheel_path
+        install_and_import_module(module_name=dependency.module,
+                                    package_name=pkg,
+                                    global_name=dependency.name)
 
 def import_module(module_name, global_name=None, reload=True):
     """

@@ -4,9 +4,9 @@ from addons.lol_blender.dependencies import *
 
 
 class LOL_OT_install_dependencies(bpy.types.Operator):
-    bl_idname = "example.install_dependencies"
-    bl_label = "Install dependencies"
-    bl_description = ("Downloads and installs the required python packages for this add-on. "
+    bl_idname = "lolblender.install_dependencies"
+    bl_label = "Manually install dependencies"
+    bl_description = ("Installs the league-toolkit dependency for this add-on. "
                       "Internet connection is required. Blender may have to be started with "
                       "elevated permissions in order to install the package")
     bl_options = {"REGISTER", "INTERNAL"}
@@ -19,17 +19,7 @@ class LOL_OT_install_dependencies(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            try:
-                install_pip()
-            except:
-                pass
-            for dependency in dependencies:
-                pkg = dependency.package
-                if dependency.module == "league_toolkit":
-                    pkg = bpy.context.preferences.addons["lol_blender"].preferences.wheel_path
-                install_and_import_module(module_name=dependency.module,
-                                          package_name=pkg,
-                                          global_name=dependency.name)
+            install_dependencies(bpy.context.preferences.addons["lol_blender"].preferences.wheel_path)
         except (subprocess.CalledProcessError, ImportError) as err:
             self.report({"ERROR"}, str(err))
             return {"CANCELLED"}
