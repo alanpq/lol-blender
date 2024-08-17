@@ -91,7 +91,7 @@ pub fn export_skl(
         .map(|name| (name.to_owned(), Vec::new()))
         .collect();
 
-    for (name, (joint, parent)) in &joints {
+    for (name, (_, parent)) in &joints {
         println!("bone {name:?} -> {parent:?}");
         let Some(parent_map) = parent.clone().and_then(|p| child_map.get_mut(&p)) else {
             continue;
