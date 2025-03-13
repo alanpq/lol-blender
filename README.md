@@ -60,7 +60,7 @@ Run Blender with addon live updating:
 # Path to your blender executable file.
 export BLENDER_PATH="/path/to/your/blender/executable"
 # Optional, needed if the version can't be detected from BLENDER_PATH
-export BLENDER_VERSION="4.1"
+export BLENDER_VERSION="4.3"
 
 # Where to put (dev) addon builds
 # Optional, useful for funky setups (e.g. nix)
