@@ -89,11 +89,23 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                     list(map(lambda t: (t[0], t[1], t[2]), skn.triangles))
             )
             mesh.normals_split_custom_set_from_vertices(list(map(lambda v: v.normal, skn.vertices)))
-            mesh.update()
+            mesh.update()        
+            obj = bpy.data.objects.new("obj", mesh)
+
+            vert_groups = {}
+
+            for vert_id, vertex in enumerate(skn.vertices):
+                for i in range(4):
+                    blend_idx = vertex.blend_indices[i]
+                    blend_weight = vertex.blend_weights[i]
+                    if blend_weight <= 0.0:
+                        continue
+                    if blend_idx not in vert_groups:
+                        vert_groups[blend_idx] = obj.vertex_groups.new(name = f'{blend_idx}')
+                    vert_groups[blend_idx].add((vert_id, ), blend_weight, 'ADD')
 
             mesh.vertices.add(len(skn.vertices))
 
-            obj = bpy.data.objects.new("obj", mesh)
             # new_collection = bpy.data.collections.new('new_collection')
             # bpy.context.scene.collection.children.link(new_collection)
             # new_collection.objects.link(obj)
