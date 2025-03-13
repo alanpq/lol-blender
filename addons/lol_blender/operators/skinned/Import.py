@@ -146,7 +146,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             mesh_obj = bpy.data.objects.new(f"GEO_{file_stem}", mesh)
 
             # import uvs
-            vert_uvs = list(map(lambda v: v.uvs, skn.vertices))
+            vert_uvs = list(map(lambda v: (v.uvs[0], v.uvs[1] * -1.0), skn.vertices))
 
             uv = mesh.uv_layers.new(name="UV_0")
             uv.uv.foreach_set("vector", [uv for pair in [vert_uvs[l.vertex_index] for l in mesh.loops] for uv in pair])
