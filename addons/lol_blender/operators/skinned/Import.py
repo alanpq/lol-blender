@@ -72,6 +72,12 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
         default=0.5
     )
 
+    scale_factor: FloatProperty(
+        name = "Scale Factor",
+        description="How much to scale everything by when importing (0.01 = 1/100 scale = 100x smaller). Make sure to use the same scale factor when exporting!",
+        default=0.01
+    )
+
     def __init__(self):
         self.armature_obj = None
 
@@ -85,6 +91,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         layout = self.layout
         layout.prop(self.properties, "import_skl")
+        layout.prop(self.properties, "scale_factor")
         layout.prop(self.properties, "leaf_bone_scale")
 
     def recall(self):
@@ -107,6 +114,8 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             to_forward='Z',
             to_up='Y',
         ).to_4x4().inverted()
+
+        global_mat = mat @ Matrix.Scale(self.scale_factor, 4)
 
         try:
             utils_set_mode('OBJECT')
@@ -133,7 +142,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
             mesh = bpy.data.meshes.new("mesh")
             mesh.from_pydata(
-                    list(map(lambda v: mat @ Vector(v.pos), skn.vertices)),
+                    list(map(lambda v: global_mat @ Vector(v.pos), skn.vertices)),
                     [],
                     list(map(lambda t: (t[0], t[1], t[2]), skn.triangles))
             )
@@ -162,7 +171,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             for b in skl.bones:
                 edit_bone = armature_obj.data.edit_bones.new(b.name)
                 edit_bone.tail = Vector((0.0, 1.0, 0.0))
-                edit_bone.matrix = mat @ Matrix(b.ibm).inverted() 
+                edit_bone.matrix = global_mat @ Matrix(b.ibm).inverted() 
 
             for b in skl.bones:
                 bone = armature_obj.data.edit_bones[b.name]
