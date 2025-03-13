@@ -186,65 +186,70 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
     def do_skl_import(self, l, context: bpy.types.Context, skn, mesh_obj, path: str):
-        skl = l.import_skl(path)
-        armature_data = bpy.data.armatures.new("Armature")
-        armature_obj = bpy.data.objects.new("Armature", armature_data)
-        # TODO: options for axes and x_ray?
-        armature_data.show_axes = False
+        try:
+            skl = l.import_skl(path)
+            armature_data = bpy.data.armatures.new("Armature")
+            armature_obj = bpy.data.objects.new("Armature", armature_data)
+            # TODO: options for axes and x_ray?
+            armature_data.show_axes = False
 
-        armature_data.display_type = 'STICK'
-        armature_obj.show_in_front = True
+            armature_data.display_type = 'STICK'
+            armature_obj.show_in_front = True
 
-        context.collection.objects.link(armature_obj)
+            context.collection.objects.link(armature_obj)
 
-        # set up vertex groups/blend weights
-        vert_groups = {}
-        for vert_id, vertex in enumerate(skn.vertices):
-            for i in range(4):
-                blend_idx = vertex.blend_indices[i]
-                blend_weight = vertex.blend_weights[i]
-                if blend_weight <= 0.0:
+            # set up vertex groups/blend weights
+            vert_groups = {}
+            for vert_id, vertex in enumerate(skn.vertices):
+                for i in range(4):
+                    blend_idx = vertex.blend_indices[i]
+                    blend_weight = vertex.blend_weights[i]
+                    if blend_weight <= 0.0:
+                        continue
+                    if blend_idx not in vert_groups:
+                        # blend_idx is an index into the .skl's joint influence list,
+                        # so we need to get the actual joint index (via influence_lookup).
+                        # since we only need the name, the influence_lookup directly gives you the joint name
+                        vert_groups[blend_idx] = mesh_obj.vertex_groups.new(name = skl.influence_lookup[blend_idx])
+                    vert_groups[blend_idx].add((vert_id, ), blend_weight, 'ADD')
+
+            # set armature as active and go to edit mode
+            # this way we can work with the edit bones
+            util_obj_select(context, armature_obj)
+            util_obj_set_active(context, armature_obj)
+            utils_set_mode('EDIT')
+        
+            # joint pass 1 - create all bones, give them names + head matrix
+            for joint in skl.joints:
+                bone = armature_obj.data.edit_bones.new(joint.name)
+                # set a default tail so blender doesn't delete our bone later
+                bone.tail = Vector((0.0,0.0,1.0))
+                bone.matrix = self.global_mat @ Matrix(joint.ibm).inverted() 
+
+            # joint pass 2 - establish parent-child hierarchy
+            for joint in skl.joints:
+                bone = armature_obj.data.edit_bones[joint.name]
+                parent = None if joint.parent is None else armature_obj.data.edit_bones[joint.parent]
+
+                if parent is not None:
+                    bone.parent = parent
+
+            # final bone pass - set tail to average of children, or extrapolate tail from parent if we are leaf bones
+            for bone in armature_obj.data.edit_bones:
+                mean = Vector()
+                children = bone.children
+                if len(children) == 0:
+                    if bone.parent is not None:
+                        bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
                     continue
-                if blend_idx not in vert_groups:
-                    # blend_idx is an index into the .skl's joint influence list,
-                    # so we need to get the actual joint index (via influence_lookup).
-                    # since we only need the name, the influence_lookup directly gives you the joint name
-                    vert_groups[blend_idx] = mesh_obj.vertex_groups.new(name = skl.influence_lookup[blend_idx])
-                vert_groups[blend_idx].add((vert_id, ), blend_weight, 'ADD')
+                for child in children:
+                    mean += child.head
+                bone.tail = mean / len(children)
+            utils_set_mode('OBJECT')
+            return armature_obj
+        except e:
+            utils_set_mode('OBJECT')
+            raise e
 
-        # set armature as active and go to edit mode
-        # this way we can work with the edit bones
-        util_obj_select(context, armature_obj)
-        util_obj_set_active(context, armature_obj)
-        utils_set_mode('EDIT')
-    
-        # joint pass 1 - create all bones, give them names + head matrix
-        for joint in skl.joints:
-            bone = armature_obj.data.edit_bones.new(joint.name)
-            # set a default tail so blender doesn't delete our bone later
-            bone.tail = Vector((0.0,0.0,1.0))
-            bone.matrix = self.global_mat @ Matrix(joint.ibm).inverted() 
-
-        # joint pass 2 - establish parent-child hierarchy
-        for joint in skl.joints:
-            bone = armature_obj.data.edit_bones[joint.name]
-            parent = None if joint.parent is None else armature_obj.data.edit_bones[joint.parent]
-
-            if parent is not None:
-                bone.parent = parent
-
-        # final bone pass - set tail to average of children, or extrapolate tail from parent if we are leaf bones
-        for bone in armature_obj.data.edit_bones:
-            mean = Vector()
-            children = bone.children
-            if len(children) == 0:
-                if bone.parent is not None:
-                    bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
-                continue
-            for child in children:
-                mean += child.head
-            bone.tail = mean / len(children)
-        utils_set_mode('OBJECT')
-        return armature_obj
 
 
