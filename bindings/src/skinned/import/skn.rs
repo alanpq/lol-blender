@@ -52,15 +52,20 @@ pub fn import_skn(py: Python<'_>, path: PathBuf) -> PyResult<Skn> {
         .vertex_buffer()
         .accessor::<glam::Vec4>(ElementName::BlendWeight)
         .unwrap();
+    let uvs = skn
+        .vertex_buffer()
+        .accessor::<glam::Vec2>(ElementName::Texcoord0)
+        .unwrap();
 
     Ok(Skn {
         vertices: izip!(
             positions.iter(),
             normals.iter(),
             indices.iter(),
-            weights.iter()
+            weights.iter(),
+            uvs.iter(),
         )
-        .map(|(pos, norm, blend_indices, blend_weights)| {
+        .map(|(pos, norm, blend_indices, blend_weights, uvs)| {
             Py::new(
                 py,
                 Vertex {
@@ -68,6 +73,7 @@ pub fn import_skn(py: Python<'_>, path: PathBuf) -> PyResult<Skn> {
                     normal: norm.into(),
                     blend_indices,
                     blend_weights: blend_weights.into(),
+                    uvs: uvs.into(),
                 },
             )
             .unwrap()
