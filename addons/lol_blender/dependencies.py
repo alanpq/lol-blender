@@ -27,7 +27,7 @@ def install_dependencies(wheel_path: str):
     for dependency in dependencies:
         pkg = dependency.package
         if dependency.module == "league_toolkit":
-            pkg = wheel_path
+            pkg = os.environ.get("__LOL_WHEEL_PATH", wheel_path)
         install_and_import_module(module_name=dependency.module,
                                     package_name=pkg,
                                     global_name=dependency.name)

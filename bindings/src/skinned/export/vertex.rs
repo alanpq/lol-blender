@@ -13,6 +13,9 @@ pub struct Vertex {
     pub blend_indices: [u8; 4],
     #[pyo3(get, set)]
     pub blend_weights: [f32; 4],
+
+    #[pyo3(get, set)]
+    pub uvs: [f32; 2],
 }
 
 #[pymethods]
@@ -29,6 +32,7 @@ impl Vertex {
             normal,
             blend_indices: blend_indices.unwrap_or_default(),
             blend_weights: blend_weights.unwrap_or_default(),
+            uvs: [0.0, 0.0],
         }
     }
 }
