@@ -3,19 +3,20 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 > **NOTE:** This plugin is *extremely* early in development, see [io_scene_lol](https://github.com/Daniil-SV/io_scene_lol) for a more developed importer/exporter.
 
 # Features
-|     ✅     |        ⚠️        |    🛠️    |
-| :-------: | :-------------: | :-----: |
-| Supported | Partial support | Planned |
+|     ✅     |        ⚠️        |   🚨   |    🛠️    |
+| :-------: | :-------------: | :----: | :-----: |
+| Supported | Partial support | Broken | Planned |
 
 ## Scene I/O
 |                             | Import | Export |
 | :-------------------------: | :----: | :----: |
-|   **Skinned Mesh** (.skn)   |   🛠️    |   ⚠️    |
-|     **Skeleton** (.skl)     |   🛠️    |   ⚠️    |
+|   **Skinned Mesh** (.skn)   |   ⚠️[^1]  |   ⚠️    |
+|     **Skeleton** (.skl)     |   ✅   |   🚨   |
 |    **Animation** (.anm)     |   🛠️    |   🛠️    |
 | **Static mesh** (.sco/.scb) |   🛠️    |   🛠️    |
 | **Map geometry** (.mapgeo)  |   🛠️    |   🛠️    |
 
+[^1]: UV/texture import not yet implemented. (Materials are imported though.)
 
 # Contributing
 ## Prerequisites
@@ -50,7 +51,7 @@ export BLENDER_PATH="/path/to/your/blender/executable"
 # Optional, needed if the version can't be detected from BLENDER_PATH
 export BLENDER_VERSION="4.1"
 
-# Where to put (dev) addon builds 
+# Where to put (dev) addon builds
 # Optional, useful for funky setups (e.g. nix)
 export __BLENDER_ADDON_PATH="/path/to/blender/addons"
 
@@ -60,7 +61,7 @@ export __LOL_WHEEL_PATH="/path/to/project/bindings/target/wheels/league_toolkit-
 python test.py
 ```
 
-# Build Release 
+# Build Release
 After completing the [prerequisites](#prerequisites), you can build a release .zip of the addon with:
 ```bash
 python release.py

@@ -159,6 +159,5 @@ pub fn export_skl(
         .enumerate()
         .map(|(i, joint_idx)| (rig.joints()[joint_idx as usize].name().to_string(), i as _))
         .collect();
-    debug!("joint_map: {joint_map:?}");
     Ok(joint_map)
 }

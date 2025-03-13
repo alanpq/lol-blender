@@ -29,5 +29,6 @@ fn league_toolkit(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(version, m)?)?;
 
     skinned::export::register(m)?;
+    skinned::import::register(m)?;
     Ok(())
 }

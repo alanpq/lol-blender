@@ -78,7 +78,33 @@ def get_mesh_and_armature_from_context(context) -> tuple[bpy.types.Object, bpy.t
         raise RuntimeError("Somehow couldn't find either mesh/armature")
     return (mesh, armature)
 
-        
+def compute_bone_transforms(armature_obj, bone, axis_correct):
+    original_mode = armature_obj.mode
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # WORLD World Space – The most global space in Blender.
+    #
+    # POSE Pose Space – The pose space of a bone (its armature’s object space).
+    #
+    # LOCAL_WITH_PARENT Local With Parent – The rest pose local space of a bone (this matrix includes parent transforms).
+    #
+    # LOCAL Local Space – The local space of an object/bone.
+
+    # local = armature_obj.convert_space(pose_bone=bone, matrix=bone.matrix_basis, from_space='LOCAL_WITH_PARENT', to_space='LOCAL');
+    if bone.bone.parent is None:
+        local = bone.bone.matrix_local# @ axis_correct
+    else:
+        # local = bone.bone.parent.matrix_local.inverted() @ bone.bone.matrix_local
+        local = axis_correct @ bone.bone.parent.matrix_local.inverted() @ bone.bone.matrix_local 
+
+    ibm = bone.bone.matrix_local.inverted()
+    if original_mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode=original_mode)
+
+    return local @ axis_correct.inverted(), ibm @ axis_correct.inverted()
+    # return local @ axis_correct, ibm @ axis_correct 
+    # return axis_correct @ local, axis_correct @ ibm
 
 class ExportSkinned(bpy.types.Operator, ExportHelper):
     """Export skinned mesh w/ rig"""
@@ -145,17 +171,15 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
             for (bone, _) in influence:
                 is_influence[bone] = True
 
-        def map_bone(b: bpy.types.Bone):
-            parent = "" if b.parent is None else b.parent.name
-            ibm = b.matrix_local
-            # local = b.matrix.to_4x4() @ mat
-            local = Matrix()
-            return (b.name, l.Bone(parent, local, ibm.inverted() @ mat.inverted(), is_influence.get(b.name, False)))
+        def map_bone(b: bpy.types.PoseBone):
+            parent = "" if b.bone.parent is None else b.bone.parent.name
+            local, ibm = compute_bone_transforms(self.armature, b, mat)
+            return (b.bone.name, l.Bone(parent, local, ibm, is_influence.get(b.name, False)))
 
 
         # map of blender bone names to league influence joint indices
         joint_map = l.export_skl(
-            dict(map(map_bone, self.armature.data.bones)),
+            dict(map(map_bone, self.armature.pose.bones)),
             bpy.path.ensure_ext(os.path.splitext(self.filepath)[0], ".skl") if self.export_skl else None,
         )
 
