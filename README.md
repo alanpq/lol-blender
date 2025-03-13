@@ -10,13 +10,13 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 ## Scene I/O
 |                             | Import | Export |
 | :-------------------------: | :----: | :----: |
-|   **Skinned Mesh** (.skn)   |   ⚠️[^1]  |   ⚠️    |
+|   **Skinned Mesh** (.skn)   |   ✅[^1]  |   ⚠️    |
 |     **Skeleton** (.skl)     |   ✅   |   🚨   |
 |    **Animation** (.anm)     |   🛠️    |   🛠️    |
 | **Static mesh** (.sco/.scb) |   🛠️    |   🛠️    |
 | **Map geometry** (.mapgeo)  |   🛠️    |   🛠️    |
 
-[^1]: UV/texture import not yet implemented. (Materials are imported though.)
+[^1]: Automatic texture import not yet implemented. (Materials/UV's are imported though, so textures can be manually hooked up)
 
 # How to Install
 1. Download the [latest .zip file](https://github.com/alanpq/lol-blender/releases/latest) of the addon (`addon-lol-blender-vX.Y.Z.zip`)
