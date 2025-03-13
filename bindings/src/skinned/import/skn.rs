@@ -1,15 +1,8 @@
 use crate::skinned::export::Vertex;
 use itertools::{izip, Itertools};
-use lib::core::{
-    mem::{ElementName, IndexBuffer, IndexFormat, VertexBufferDescription},
-    mesh::{SkinnedMesh, SkinnedMeshRange, SkinnedMeshVertexType},
-};
+use lib::core::{mem::ElementName, mesh::SkinnedMesh};
 use pyo3::prelude::*;
-use std::{
-    fs::File,
-    io::{BufReader, BufWriter},
-    path::PathBuf,
-};
+use std::{fs::File, io::BufReader, path::PathBuf};
 
 #[derive(Debug)]
 #[pyclass]
