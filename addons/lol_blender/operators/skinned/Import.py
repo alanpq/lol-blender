@@ -161,12 +161,14 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             mats = {}
             for r in skn.material_ranges:
                 if r.material not in mats:
-                    matdata = bpy.data.materials.get(r.material)
-                    if matdata is None:
-                        matdata = bpy.data.materials.new(r.material)
-                        matdata.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
+                    mat = bpy.data.materials.get(r.material)
+                    if mat is None:
+                        mat = bpy.data.materials.new(r.material)
+                        mat.use_nodes = True
+                        nodes = mat.node_tree.nodes
+
                     mats[r.material] = len(mesh.materials) 
-                    mesh.materials.append(matdata)
+                    mesh.materials.append(mat)
                 for p_idx in range(r.start_index, r.index_count // 3):
                     p = mesh.polygons[p_idx]
                     p.material_index = mats[r.material]
