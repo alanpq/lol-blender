@@ -125,13 +125,11 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             file_stem = os.path.splitext(file_base)[0]
 
             skn = l.import_skn(
-                # if we also want .skl import, we can be fuzzy with file choice,
-                # since picking the .skl should still let us find the .skn
-                os.path.join(file_head, file_stem + ".skn") if self.import_skl else self.filepath,
+                os.path.join(file_head, file_stem + ".skn"),
             )
 
             # import mesh
-            mesh = bpy.data.meshes.new("mesh")
+            mesh = bpy.data.meshes.new(file_stem)
             mesh.from_pydata(
                     list(map(lambda v: self.global_mat @ Vector(v.pos), skn.vertices)),
                     [],
@@ -142,11 +140,11 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             mesh.normals_split_custom_set_from_vertices(list(map(lambda v: self.mat @ Vector(v.normal), skn.vertices)))
 
             mesh.update()        
-            mesh_obj = bpy.data.objects.new("obj", mesh)
+            mesh_obj = bpy.data.objects.new(f"GEO_{file_stem}", mesh)
 
             # import armature
             armature = self.do_skl_import(
-                l, context, skn, mesh_obj,
+                l, context, skn, mesh_obj, file_stem,
                 os.path.join(file_head, file_stem + ".skl")
             ) if self.import_skl else None
             
@@ -185,11 +183,11 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
         return {'FINISHED'}
 
-    def do_skl_import(self, l, context: bpy.types.Context, skn, mesh_obj, path: str):
+    def do_skl_import(self, l, context: bpy.types.Context, skn, mesh_obj, file_stem, path: str):
         try:
             skl = l.import_skl(path)
-            armature_data = bpy.data.armatures.new("Armature")
-            armature_obj = bpy.data.objects.new("Armature", armature_data)
+            armature_data = bpy.data.armatures.new(file_stem)
+            armature_obj = bpy.data.objects.new(f"RIG_{file_stem}", armature_data)
             armature_data.show_axes = False
             armature_obj.show_in_front = True
 
