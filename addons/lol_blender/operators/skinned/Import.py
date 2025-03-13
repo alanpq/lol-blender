@@ -10,11 +10,12 @@ from addons.lol_blender.preference.AddonPreferences import LOLPrefs
 from common.types.framework import ExpandableUi
 
 import os
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Color
 
 import itertools
 import statistics
 import re
+import random
 
 class MenuImportSkinned(ExpandableUi):
     target_id = "TOPBAR_MT_file_import"
@@ -181,6 +182,20 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                     mean += child.head
                 bone.tail = mean / len(children)
             utils_set_mode('OBJECT')
+
+            
+            mats = {}
+
+            for r in skn.material_ranges:
+                if r.material not in mats:
+                    matdata = bpy.data.materials.new(r.material)
+                    matdata.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
+                    mats[r.material] = len(mesh.materials) 
+                    mesh.materials.append(matdata)
+                print(mats)
+                for p_idx in range(r.start_index, r.index_count // 3):
+                    p = mesh.polygons[p_idx]
+                    p.material_index = mats[r.material]
 
             # new_collection = bpy.data.collections.new('new_collection')
             # context.scene.collection.children.link(new_collection)

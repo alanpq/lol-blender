@@ -9,8 +9,26 @@ use std::{fs::File, io::BufReader, path::PathBuf};
 pub struct Skn {
     #[pyo3(get, set)]
     pub vertices: Vec<Py<Vertex>>,
-    #[pyo3(get, set)]
+    #[pyo3(get)]
     pub triangles: Vec<[u32; 3]>,
+
+    #[pyo3(get)]
+    pub material_ranges: Vec<MaterialRange>,
+}
+
+#[derive(Debug, Clone)]
+#[pyclass]
+pub struct MaterialRange {
+    #[pyo3(get)]
+    pub material: String,
+    #[pyo3(get)]
+    pub start_vertex: i32,
+    #[pyo3(get)]
+    pub vertex_count: i32,
+    #[pyo3(get)]
+    pub start_index: i32,
+    #[pyo3(get)]
+    pub index_count: i32,
 }
 
 #[pyfunction]
@@ -63,6 +81,17 @@ pub fn import_skn(py: Python<'_>, path: PathBuf) -> PyResult<Skn> {
             .map(|tri| {
                 tri.collect_array::<3>()
                     .expect("index buffer to be multiple of 3")
+            })
+            .collect(),
+        material_ranges: skn
+            .ranges()
+            .iter()
+            .map(|r| MaterialRange {
+                material: r.material.clone(),
+                start_vertex: r.start_vertex,
+                vertex_count: r.vertex_count,
+                start_index: r.start_index,
+                index_count: r.index_count,
             })
             .collect(),
     })
