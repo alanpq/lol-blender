@@ -1,7 +1,7 @@
 from typing import Any
 
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, FloatProperty
 from bpy_extras.io_utils import axis_conversion, ExportHelper
 
 from addons.lol_blender.config import __addon_name__
@@ -65,6 +65,12 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
         default=True
     ) # type: ignore
 
+    leaf_bone_scale: FloatProperty(
+        name = "Leaf Bone Scale",
+        description="How long to make leaf joint bones, as a % of their parent bone's length",
+        default=0.5
+    )
+
     def __init__(self):
         self.armature_obj = None
 
@@ -78,6 +84,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         layout = self.layout
         layout.prop(self.properties, "import_skl")
+        layout.prop(self.properties, "leaf_bone_scale")
 
     def recall(self):
         if self.recall_mode is not None:
@@ -168,7 +175,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                 children = bone.children
                 if len(children) == 0:
                     if bone.parent is not None:
-                        bone.tail = bone.head + ((bone.head - bone.parent.head) * 0.5)
+                        bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
                     continue
                 for child in children:
                     mean += child.head
