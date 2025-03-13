@@ -26,13 +26,7 @@ class MenuImportSkinned(ExpandableUi):
 
 
 def util_obj_select(context, obj, action = 'SELECT'):
-    # if obj.name in bpy.data.scenes[0].view_layers[0].objects:
-    # print(obj.name)
-    # print(list(context.view_layer.objects))
-    # if obj.name in context.view_layer.objects:
     return obj.select_set(action == 'SELECT')
-    # else:
-    #     print('Warning: util_obj_select: Object not in "context.view_layer.objects"')
 
 def util_obj_set_active(context, obj):
     context.view_layer.objects.active = obj
@@ -130,9 +124,6 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             (file_head, file_base) = os.path.split(self.filepath)
             file_stem = os.path.splitext(file_base)[0]
 
-            print(file_head + file_stem)
-            print(file_stem)
-
             skn = l.import_skn(
                 # if we also want .skl import, we can be fuzzy with file choice,
                 # since picking the .skl should still let us find the .skn
@@ -169,7 +160,6 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                         matdata.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
                     mats[r.material] = len(mesh.materials) 
                     mesh.materials.append(matdata)
-                print(mats)
                 for p_idx in range(r.start_index, r.index_count // 3):
                     p = mesh.polygons[p_idx]
                     p.material_index = mats[r.material]
