@@ -1,16 +1,19 @@
 name: Release
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types: [closed]
 jobs:
 
   release-addon:
+    if: ${{ github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'norelease') }}
     needs: [bindings-linux, bindings-windows, bindings-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Bundle Add-on
@@ -42,6 +45,7 @@ jobs:
           gh release upload ${{steps.release.outputs.tag_name}} ./wheels*/*.whl
 
   bindings-linux:
+    if: ${{ github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'norelease') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -61,8 +65,9 @@ jobs:
         with:
           name: wheels-linux-${{matrix.target}}
           path: dist/*.whl
-  
+
   bindings-windows:
+    if: ${{ github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'norelease') }}
     runs-on: windows-latest
     strategy:
       matrix:
@@ -79,13 +84,14 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist/ -m bindings/Cargo.toml 
+          args: --release --out dist/ -m bindings/Cargo.toml
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-${{ matrix.target }}
           path: dist/*.whl
   bindings-macos:
+    if: ${{ github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'norelease') }}
     runs-on: macos-latest
     strategy:
       matrix:
@@ -102,13 +108,13 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist/ -m bindings/Cargo.toml 
+          args: --release --out dist/ -m bindings/Cargo.toml
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.target }}
           path: dist/*.whl
-      
+
 permissions:
   contents: write
   pull-requests: read
