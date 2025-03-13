@@ -16,6 +16,7 @@ import itertools
 import statistics
 import re
 import random
+import numpy as np
 
 class MenuImportSkinned(ExpandableUi):
     target_id = "TOPBAR_MT_file_import"
@@ -127,8 +128,8 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             skn = l.import_skn(
                 os.path.join(file_head, file_stem + ".skn"),
             )
-
-            # import mesh
+            
+            # import mesh verts/faces
             mesh = bpy.data.meshes.new(file_stem)
             mesh.from_pydata(
                     list(map(lambda v: self.global_mat @ Vector(v.pos), skn.vertices)),
@@ -139,8 +140,16 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             # we don't use global_mat, since normals shouldn't be scaled
             mesh.normals_split_custom_set_from_vertices(list(map(lambda v: self.mat @ Vector(v.normal), skn.vertices)))
 
-            mesh.update()        
+            mesh.validate()
+            mesh.update()
+
             mesh_obj = bpy.data.objects.new(f"GEO_{file_stem}", mesh)
+
+            # import uvs
+            vert_uvs = list(map(lambda v: v.uvs, skn.vertices))
+
+            uv = mesh.uv_layers.new(name="UV_0")
+            uv.uv.foreach_set("vector", [uv for pair in [vert_uvs[l.vertex_index] for l in mesh.loops] for uv in pair])
 
             # import armature
             armature = self.do_skl_import(
