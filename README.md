@@ -29,7 +29,7 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
     - If you want to do this manually - or the automatic download isn't working,
       download the correct `.whl` from the releases page, set the `Wheel Path` in your addon preferences, and click `Manually install dependencies`.
 
-# Contributing
+# Development
 ## Prerequisites
 - Python 3
 - Rust
@@ -47,7 +47,7 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-# Development
+## Building/Running
 
 Build the league-toolkit bindings:
 ```bash
@@ -72,7 +72,7 @@ export __LOL_WHEEL_PATH="/path/to/project/bindings/target/wheels/league_toolkit-
 python test.py
 ```
 
-# Build Release
+## Building for Release
 After completing the [prerequisites](#prerequisites), you can build a release .zip of the addon with:
 ```bash
 python release.py
