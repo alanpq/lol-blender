@@ -59,24 +59,26 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
         options={'HIDDEN'},
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
-    
-    import_skl: BoolProperty(
-        name="Import Skeleton",
-        description="Whether to import the .skl, along with the .skn. This will not fail if the .skl cannot be found",
-        default=True
-    ) # type: ignore
-
-    leaf_bone_scale: FloatProperty(
-        name = "Leaf Bone Scale",
-        description="How long to make leaf joint bones, as a % of their parent bone's length",
-        default=0.5
-    )
 
     scale_factor: FloatProperty(
         name = "Scale Factor",
         description="How much to scale everything by when importing (0.01 = 1/100 scale = 100x smaller). Make sure to use the same scale factor when exporting!",
         default=0.01
     )
+    
+
+    import_skl: BoolProperty(
+        name="Import Skeleton",
+        description="Whether to import the .skl, along with the .skn. This will not fail if the .skl cannot be found",
+        default=True
+    ) # type: ignore
+    leaf_bone_scale: FloatProperty(
+        name = "Leaf Bone Scale",
+        description="How long to make leaf bones, as a % of their parent bone's length",
+        default=0.5,
+        min=0.0,
+    )
+
 
     def __init__(self):
         self.armature_obj = None
@@ -90,9 +92,13 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self.properties, "import_skl")
         layout.prop(self.properties, "scale_factor")
-        layout.prop(self.properties, "leaf_bone_scale")
+
+        skl_box = layout.box()
+        skl_box.prop(self.properties, "import_skl")
+        col = skl_box.column()
+        col.enabled = self.import_skl
+        col.prop(self.properties, "leaf_bone_scale")
 
     def recall(self):
         if self.recall_mode is not None:
@@ -108,97 +114,59 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
         l = get_modules(addon_prefs.wheel_path)["league_toolkit"]
 
-        mat = axis_conversion(
+        self.mat = axis_conversion(
             from_forward='-Y',
             from_up='Z',
             to_forward='Z',
             to_up='Y',
         ).to_4x4().inverted()
 
-        global_mat = mat @ Matrix.Scale(self.scale_factor, 4)
+        # the general transform from LoL space -> Blender space
+        self.global_mat = self.mat @ Matrix.Scale(self.scale_factor, 4)
 
         try:
             utils_set_mode('OBJECT')
-            print(self.filepath)
-            # TODO: make skl import optional
-            skl = l.import_skl(
-                bpy.path.ensure_ext(re.sub('skn$', 'skl', self.filepath), ".skl")
-            )
-            
-            armature_data = bpy.data.armatures.new("armature_data")
-            armature_obj = bpy.data.objects.new("armature_obj", armature_data)
-            # TODO: options for axes and x_ray?
-            armature_data.show_axes = False
 
-            armature_data.display_type = 'STICK'
-            armature_obj.show_in_front = True
+            (file_head, file_base) = os.path.split(self.filepath)
+            file_stem = os.path.splitext(file_base)[0]
 
-            context.collection.objects.link(armature_obj)
-
+            print(file_head + file_stem)
+            print(file_stem)
 
             skn = l.import_skn(
-                bpy.path.ensure_ext(re.sub('skl$', 'skn', self.filepath), ".skn"),
+                # if we also want .skl import, we can be fuzzy with file choice,
+                # since picking the .skl should still let us find the .skn
+                os.path.join(file_head, file_stem + ".skn") if self.import_skl else self.filepath,
             )
 
+            # import mesh
             mesh = bpy.data.meshes.new("mesh")
             mesh.from_pydata(
-                    list(map(lambda v: global_mat @ Vector(v.pos), skn.vertices)),
+                    list(map(lambda v: self.global_mat @ Vector(v.pos), skn.vertices)),
                     [],
-                    list(map(lambda t: (t[0], t[1], t[2]), skn.triangles))
+                    list(map(lambda t: t, skn.triangles))
             )
-            mesh.normals_split_custom_set_from_vertices(list(map(lambda v: mat @ Vector(v.normal), skn.vertices)))
+
+            # we don't use global_mat, since normals shouldn't be scaled
+            mesh.normals_split_custom_set_from_vertices(list(map(lambda v: self.mat @ Vector(v.normal), skn.vertices)))
+
             mesh.update()        
-            obj = bpy.data.objects.new("obj", mesh)
+            mesh_obj = bpy.data.objects.new("obj", mesh)
 
-            vert_groups = {}
-
-            for vert_id, vertex in enumerate(skn.vertices):
-                for i in range(4):
-                    blend_idx = vertex.blend_indices[i]
-                    blend_weight = vertex.blend_weights[i]
-                    if blend_weight <= 0.0:
-                        continue
-                    if blend_idx not in vert_groups:
-                        vert_groups[blend_idx] = obj.vertex_groups.new(name = skl.influence_lookup[blend_idx])
-                    vert_groups[blend_idx].add((vert_id, ), blend_weight, 'ADD')
-
-            mesh.vertices.add(len(skn.vertices))
-
-            util_obj_select(context, armature_obj)
-            util_obj_set_active(context, armature_obj)
-            utils_set_mode('EDIT')
+            # import armature
+            armature = self.do_skl_import(
+                l, context, skn, mesh_obj,
+                os.path.join(file_head, file_stem + ".skl")
+            ) if self.import_skl else None
             
-            for b in skl.bones:
-                edit_bone = armature_obj.data.edit_bones.new(b.name)
-                edit_bone.tail = Vector((0.0, 1.0, 0.0))
-                edit_bone.matrix = global_mat @ Matrix(b.ibm).inverted() 
-
-            for b in skl.bones:
-                bone = armature_obj.data.edit_bones[b.name]
-                parent = None if b.parent is None else armature_obj.data.edit_bones[b.parent]
-
-                if parent is not None:
-                    bone.parent = parent
-
-            for bone in armature_obj.data.edit_bones:
-                mean = Vector()
-                children = bone.children
-                if len(children) == 0:
-                    if bone.parent is not None:
-                        bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
-                    continue
-                for child in children:
-                    mean += child.head
-                bone.tail = mean / len(children)
-            utils_set_mode('OBJECT')
-
-            
+            # import materials
             mats = {}
-
             for r in skn.material_ranges:
                 if r.material not in mats:
-                    matdata = bpy.data.materials.new(r.material)
-                    matdata.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
+                    matdata = bpy.data.materials.get(r.material)
+                    if matdata is None:
+                        matdata = bpy.data.materials.new(r.material)
+                        matdata.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
                     mats[r.material] = len(mesh.materials) 
                     mesh.materials.append(matdata)
                 print(mats)
@@ -209,25 +177,84 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             # new_collection = bpy.data.collections.new('new_collection')
             # context.scene.collection.children.link(new_collection)
             # new_collection.objects.link(obj)
-            context.collection.objects.link(obj)
-
-            # parenting mesh to armature object
-            obj.parent = armature_obj
-            obj.parent_type = 'OBJECT'
+            context.collection.objects.link(mesh_obj)
             
-            # add armature modifier
-            arm_modifier = obj.modifiers.new( armature_obj.data.name, type = 'ARMATURE')
-            arm_modifier.show_expanded = False
-            arm_modifier.use_vertex_groups = True
-            arm_modifier.use_bone_envelopes = False
-            arm_modifier.object = armature_obj
+            if armature is not None:
+                # parenting mesh to armature object
+                mesh_obj.parent = armature
+                mesh_obj.parent_type = 'OBJECT'
 
-            # print(skn.vertices)
-            # print(skn.triangles)
-            # print(skn.influences)
+                # add armature modifier
+                arm_modifier = mesh_obj.modifiers.new( armature.data.name, type = 'ARMATURE')
+                arm_modifier.show_expanded = False
+                arm_modifier.use_vertex_groups = True
+                arm_modifier.use_bone_envelopes = False
+                arm_modifier.object = armature
         finally:
             pass
 
         return {'FINISHED'}
+
+    def do_skl_import(self, l, context: bpy.types.Context, skn, mesh_obj, path: str):
+        skl = l.import_skl(path)
+        armature_data = bpy.data.armatures.new("Armature")
+        armature_obj = bpy.data.objects.new("Armature", armature_data)
+        # TODO: options for axes and x_ray?
+        armature_data.show_axes = False
+
+        armature_data.display_type = 'STICK'
+        armature_obj.show_in_front = True
+
+        context.collection.objects.link(armature_obj)
+
+        # set up vertex groups/blend weights
+        vert_groups = {}
+        for vert_id, vertex in enumerate(skn.vertices):
+            for i in range(4):
+                blend_idx = vertex.blend_indices[i]
+                blend_weight = vertex.blend_weights[i]
+                if blend_weight <= 0.0:
+                    continue
+                if blend_idx not in vert_groups:
+                    # blend_idx is an index into the .skl's joint influence list,
+                    # so we need to get the actual joint index (via influence_lookup).
+                    # since we only need the name, the influence_lookup directly gives you the joint name
+                    vert_groups[blend_idx] = mesh_obj.vertex_groups.new(name = skl.influence_lookup[blend_idx])
+                vert_groups[blend_idx].add((vert_id, ), blend_weight, 'ADD')
+
+        # set armature as active and go to edit mode
+        # this way we can work with the edit bones
+        util_obj_select(context, armature_obj)
+        util_obj_set_active(context, armature_obj)
+        utils_set_mode('EDIT')
+    
+        # joint pass 1 - create all bones, give them names + head matrix
+        for joint in skl.joints:
+            bone = armature_obj.data.edit_bones.new(joint.name)
+            # set a default tail so blender doesn't delete our bone later
+            bone.tail = Vector((0.0,0.0,1.0))
+            bone.matrix = self.global_mat @ Matrix(joint.ibm).inverted() 
+
+        # joint pass 2 - establish parent-child hierarchy
+        for joint in skl.joints:
+            bone = armature_obj.data.edit_bones[joint.name]
+            parent = None if joint.parent is None else armature_obj.data.edit_bones[joint.parent]
+
+            if parent is not None:
+                bone.parent = parent
+
+        # final bone pass - set tail to average of children, or extrapolate tail from parent if we are leaf bones
+        for bone in armature_obj.data.edit_bones:
+            mean = Vector()
+            children = bone.children
+            if len(children) == 0:
+                if bone.parent is not None:
+                    bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
+                continue
+            for child in children:
+                mean += child.head
+            bone.tail = mean / len(children)
+        utils_set_mode('OBJECT')
+        return armature_obj
 
 

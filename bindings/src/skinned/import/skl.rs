@@ -8,7 +8,7 @@ use crate::{skinned::export::Bone, Mat4};
 #[pyclass]
 pub struct Skl {
     #[pyo3(get)]
-    pub bones: Vec<Py<Joint>>,
+    pub joints: Vec<Py<Joint>>,
 
     #[pyo3(get)]
     pub influence_lookup: HashMap<i16, String>,
@@ -36,7 +36,7 @@ pub fn import_skl(py: Python<'_>, path: PathBuf) -> PyResult<Skl> {
 
     skl.joints();
     Ok(Skl {
-        bones: skl
+        joints: skl
             .joints()
             .iter()
             .map(|j| {
