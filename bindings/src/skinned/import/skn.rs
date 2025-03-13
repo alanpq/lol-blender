@@ -18,8 +18,6 @@ pub struct Skn {
     pub vertices: Vec<Py<Vertex>>,
     #[pyo3(get, set)]
     pub triangles: Vec<[u32; 3]>,
-    #[pyo3(get, set)]
-    pub influences: Option<Vec<[(i16, f32); 4]>>,
 }
 
 #[pyfunction]
@@ -74,6 +72,5 @@ pub fn import_skn(py: Python<'_>, path: PathBuf) -> PyResult<Skn> {
                     .expect("index buffer to be multiple of 3")
             })
             .collect(),
-        influences: None,
     })
 }
