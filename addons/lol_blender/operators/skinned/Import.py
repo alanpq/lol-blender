@@ -190,10 +190,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             skl = l.import_skl(path)
             armature_data = bpy.data.armatures.new("Armature")
             armature_obj = bpy.data.objects.new("Armature", armature_data)
-            # TODO: options for axes and x_ray?
             armature_data.show_axes = False
-
-            armature_data.display_type = 'STICK'
             armature_obj.show_in_front = True
 
             context.collection.objects.link(armature_obj)
