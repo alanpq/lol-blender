@@ -173,6 +173,7 @@ dependencies = [
  "flate2",
  "glam",
  "io-ext",
+ "itertools",
  "lazy_static",
  "league-primitives",
  "log",
@@ -181,6 +182,7 @@ dependencies = [
  "num_enum",
  "paste",
  "thiserror",
+ "xxhash-rust",
  "zstd",
 ]
 
@@ -592,6 +594,12 @@ checksum = "86e376c75f4f43f44db463cf729e0d3acbf954d13e22c51e26e4c264b4ab545f"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "xxhash-rust"
+version = "0.8.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdd20c5420375476fbd4394763288da7eb0cc0b8c11deed431a91562af7335d3"
 
 [[package]]
 name = "zstd"
