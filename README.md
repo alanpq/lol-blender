@@ -18,6 +18,17 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 
 [^1]: UV/texture import not yet implemented. (Materials are imported though.)
 
+# How to Install
+1. Download the [latest .zip file](https://github.com/alanpq/lol-blender/releases/latest) of the addon (`addon-lol-blender-vX.Y.Z.zip`)
+    - There is no need to download any of the `.whl` files (unless you are doing manual setup in step 5).
+2. Open Blender and go to `Edit > Preferences > Add-ons`
+3. Click the `Install` button in the top right, next to refresh.
+4. Select the zip file you downloaded and click install.
+5. In the preferences for the addon, click `Automatically download & install dependencies`.
+    - This will fetch the correct `.whl` file for your system and install it.
+    - If you want to do this manually - or the automatic download isn't working,
+      download the correct `.whl` from the releases page, set the `Wheel Path` in your addon preferences, and click `Manually install dependencies`.
+
 # Contributing
 ## Prerequisites
 - Python 3
