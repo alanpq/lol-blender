@@ -3,11 +3,13 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 > **NOTE:** This plugin is *extremely* early in development, see [io_scene_lol](https://github.com/Daniil-SV/io_scene_lol) for a more developed importer/exporter.
 
 # Features
+
 |     ✅     |        ⚠️        |   🚨   |    🛠️    |
 | :-------: | :-------------: | :----: | :-----: |
 | Supported | Partial support | Broken | Planned |
 
 ## Scene I/O
+
 |                             | Import | Export |
 | :-------------------------: | :----: | :----: |
 |   **Skinned Mesh** (.skn)   |   ✅[^1]  |   ⚠️    |
@@ -52,7 +54,7 @@ source venv/bin/activate
 Build the league-toolkit bindings:
 ```bash
 cd bindings
-maturin develop
+maturin build
 ```
 
 Run Blender with addon live updating:
@@ -78,8 +80,8 @@ After completing the [prerequisites](#prerequisites), you can build a release .z
 python release.py
 ```
 
-Build the league-toolkit bindings, to be distributed separately (for now):
+Build the league-toolkit bindings (to be distributed separately per platform):
 ```bash
 cd bindings
-maturin develop
+maturin build
 ```
