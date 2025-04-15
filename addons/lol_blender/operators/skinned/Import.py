@@ -252,8 +252,16 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                     mean += child.head
                 bone.tail = mean / len(children)
             utils_set_mode('OBJECT')
+
+            print(armature_obj.pose.bones.keys())
+            for joint in skl.joints:
+                if joint.name not in armature_obj.pose.bones:
+                    print(f"WARN: could not find pose bone for joint {joint.name}")
+                    continue
+                armature_obj.pose.bones[joint.name].lol_name_hash = joint.name_hash
+
             return armature_obj
-        except e:
+        except Exception as e:
             utils_set_mode('OBJECT')
             raise e
 

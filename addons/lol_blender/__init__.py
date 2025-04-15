@@ -47,6 +47,10 @@ def register():
     load_dictionary(dictionary)
     bpy.app.translations.register(__addon_name__, common_dictionary)
 
+
+    # Custom Properties
+    bpy.types.PoseBone.lol_name_hash = bpy.props.IntProperty(name="LoL joint name hash")
+
     print("{} addon is installed.".format(bl_info["name"]))
 
 
@@ -56,5 +60,8 @@ def unregister():
     # unRegister classes
     auto_load.unregister()
     remove_properties(_addon_properties)
+
+    # Custom Properties
+    del bpy.types.PoseBone.lol_name_hash
 
     print("{} addon is uninstalled.".format(bl_info["name"]))
