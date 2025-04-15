@@ -2,7 +2,7 @@ use lib::core::animation::RigResource;
 use pyo3::prelude::*;
 use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf};
 
-use crate::{skinned::export::Bone, Mat4};
+use crate::Mat4;
 
 #[derive(Debug)]
 #[pyclass]
@@ -27,6 +27,8 @@ pub struct Joint {
     pub local: Mat4,
     #[pyo3(get, set)]
     pub is_influence: bool,
+    #[pyo3(get, set)]
+    pub name_hash: u32,
 }
 
 #[pyfunction]
@@ -43,6 +45,7 @@ pub fn import_skl(py: Python<'_>, path: PathBuf) -> PyResult<Skl> {
                 Py::new(
                     py,
                     Joint {
+                        name_hash: j.name_hash(),
                         parent: match j.parent_id() {
                             -1 => None,
                             id => skl.joints().get(id as usize).map(|j| j.name().into()),
