@@ -65,7 +65,7 @@
           python311Packages.pip
           python311Packages.virtualenv
           maturin
-          # blender
+          blender
           # pkg-config
           # openssl
         ];
