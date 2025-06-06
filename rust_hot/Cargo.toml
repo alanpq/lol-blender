@@ -1,0 +1,16 @@
+[package]
+name = "rust_hot"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+# We need this to be "dylib" s.t. we can reload on changes.
+#
+# Note that "rlib" may be needed to include the package in other upstreams.
+# This error might show up, though I'm not entirely sure why.
+#     error: cannot satisfy dependencies so <lib> only shows up once
+crate-type = ["rlib", "dylib"]
+
+[dependencies]
+rust_api.path = "../rust_api"
+rust_core.path = "../rust_core"

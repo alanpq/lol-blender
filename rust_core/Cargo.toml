@@ -1,0 +1,8 @@
+[package]
+name = "rust_core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nalgebra = "0.33.2"
+rust_api.path = "../rust_api"
