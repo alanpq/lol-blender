@@ -39,8 +39,8 @@ pub fn initialize() {
     *LOCK.lock().unwrap() = Some(rust_hot_reload::create_context());
 }
 
-pub fn try_with_context<R, F: FnMut(&mut dyn rust_hot_reload::Context) -> Result<R>>(
-    mut f: F,
+pub fn try_with_context<R, F: FnOnce(&mut dyn rust_hot_reload::Context) -> Result<R>>(
+    f: F,
 ) -> Result<R> {
     f(LOCK
         .lock()
@@ -50,7 +50,7 @@ pub fn try_with_context<R, F: FnMut(&mut dyn rust_hot_reload::Context) -> Result
         .as_mut())
 }
 
-pub fn with_context<R, F: FnMut(&mut dyn rust_hot_reload::Context) -> R>(mut f: F) -> Result<R> {
+pub fn with_context<R, F: FnOnce(&mut dyn rust_hot_reload::Context) -> R>(f: F) -> Result<R> {
     try_with_context(|c| Ok(f(c)))
 }
 
