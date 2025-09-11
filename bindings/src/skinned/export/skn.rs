@@ -40,7 +40,7 @@ pub fn export_skn(
             0,
             vertex_count as _,
             0,
-            idx_count as _,
+            (idx_count / 3) as _,
         )],
         vert_buf,
         idx_buf,

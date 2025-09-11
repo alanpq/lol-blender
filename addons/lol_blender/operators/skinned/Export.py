@@ -83,26 +83,16 @@ def compute_bone_transforms(armature_obj, bone, axis_correct):
     
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # WORLD World Space – The most global space in Blender.
-    #
-    # POSE Pose Space – The pose space of a bone (its armature’s object space).
-    #
-    # LOCAL_WITH_PARENT Local With Parent – The rest pose local space of a bone (this matrix includes parent transforms).
-    #
-    # LOCAL Local Space – The local space of an object/bone.
+    local = (axis_correct @ bone.bone.matrix_local)
+    if bone.bone.parent is not None:
+        local = (axis_correct @ bone.bone.parent.matrix_local).inverted() @ local
 
-    # local = armature_obj.convert_space(pose_bone=bone, matrix=bone.matrix_basis, from_space='LOCAL_WITH_PARENT', to_space='LOCAL');
-    if bone.bone.parent is None:
-        local = bone.bone.matrix_local# @ axis_correct
-    else:
-        # local = bone.bone.parent.matrix_local.inverted() @ bone.bone.matrix_local
-        local = axis_correct @ bone.bone.parent.matrix_local.inverted() @ bone.bone.matrix_local 
-
-    ibm = bone.bone.matrix_local.inverted()
+    ibm = (axis_correct @ bone.bone.matrix_local).inverted()
     if original_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode=original_mode)
 
-    return local @ axis_correct.inverted(), ibm @ axis_correct.inverted()
+    return local, ibm 
+    # return local @ axis_correct.inverted(), ibm @ axis_correct.inverted()
     # return local @ axis_correct, ibm @ axis_correct 
     # return axis_correct @ local, axis_correct @ ibm
 

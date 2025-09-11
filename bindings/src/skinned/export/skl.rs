@@ -1,3 +1,4 @@
+use glam::Mat4;
 use lib::core::animation::{joint, RigResource};
 use pyo3::prelude::*;
 use std::{
@@ -73,7 +74,7 @@ pub fn export_skl(
             let local_transform = glam::Mat4::from_cols_array_2d(&bone.local).transpose();
             let ibm = glam::Mat4::from_cols_array_2d(&bone.ibm).transpose();
 
-            debug!("mat: {:?}", local_transform.to_scale_rotation_translation());
+            // debug!("mat: {:?}", local_transform.to_scale_rotation_translation());
             (
                 name.clone(),
                 (
@@ -93,7 +94,7 @@ pub fn export_skl(
         .collect();
 
     for (name, (_, parent)) in &joints {
-        debug!("bone {name:?} -> {parent:?}");
+        // debug!("bone {name:?} -> {parent:?}");
         let Some(parent_map) = parent.clone().and_then(|p| child_map.get_mut(&p)) else {
             continue;
         };
@@ -104,18 +105,28 @@ pub fn export_skl(
     let mut processed = 0;
     let nodes = topological_sort(&child_map).unwrap();
     for n in nodes.iter().rev() {
-        debug!("- {n}");
+        // debug!("- {n}");
         let Some(children) = child_map.remove(n) else {
             continue;
         };
+        // let parent_matrix = {
+        //     let Some(joint) = joints.get_mut(n) else {
+        //         continue;
+        //     };
+        //     joint.0.inverse_bind_transform
+        // };
         let children = children
             .into_iter()
             .filter_map(|c| joints.remove(&c).map(|j| j.0))
+            // .map(|j| {
+            //     let local_matrix = j.inverse_bind_transform.inverse();
+            //     j.with_local_transform(parent_matrix.mul_mat4(&local_matrix))
+            // })
             .collect::<Vec<_>>();
-        debug!("  - {children:?}");
         let Some(joint) = joints.get_mut(n) else {
             continue;
         };
+        // debug!("  - {children:?}");
         processed += children.len();
         joint.0.add_children(children);
     }

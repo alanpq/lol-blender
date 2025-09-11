@@ -110,11 +110,11 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
         l = get_modules(addon_prefs.wheel_path)["league_toolkit"]
 
         self.mat = axis_conversion(
-            from_forward='-Y',
-            from_up='Z',
-            to_forward='Z',
-            to_up='Y',
-        ).to_4x4().inverted()
+            from_forward='Z',
+            from_up='Y',
+            to_forward='Y',
+            to_up='Z',
+        ).to_4x4()
 
         # the general transform from LoL space -> Blender space
         self.global_mat = self.mat @ Matrix.Scale(self.scale_factor, 4)
@@ -229,7 +229,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             for joint in skl.joints:
                 bone = armature_obj.data.edit_bones.new(joint.name)
                 # set a default tail so blender doesn't delete our bone later
-                bone.tail = Vector((0.0,0.0,1.0))
+                bone.tail = Vector((0.0,-1.0,0.0))
                 bone.matrix = self.global_mat @ Matrix(joint.ibm).inverted() 
 
             # joint pass 2 - establish parent-child hierarchy
@@ -246,11 +246,12 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
                 children = bone.children
                 if len(children) == 0:
                     if bone.parent is not None:
-                        bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
+                        bone.length = self.leaf_bone_scale
+                        # bone.tail = bone.head + ((bone.head - bone.parent.head) * self.leaf_bone_scale)
                     continue
                 for child in children:
                     mean += child.head
-                bone.tail = mean / len(children)
+                bone.length = ((mean / len(children)) - bone.head).length
             utils_set_mode('OBJECT')
 
             print(armature_obj.pose.bones.keys())
