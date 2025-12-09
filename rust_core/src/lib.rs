@@ -3,6 +3,11 @@ use rust_api::Context;
 
 pub struct Impl;
 impl Context for Impl {
+
+    fn import_skl(&self, path: std::path::PathBuf) -> rust_api::Skl {
+        todo!()
+    }
+
     fn sample_inside(&self, flat_vertices: &[f32], flat_triangles: &[i32]) -> Vec<f32> {
         let vertices = flat_vertices
             .chunks_exact(3)

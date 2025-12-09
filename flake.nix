@@ -64,10 +64,9 @@
           bacon
 
           python3
-          python311Packages.pip
-          python311Packages.virtualenv
-          maturin
           uv
+          maturin
+          basedpyright
           # blender
           # pkg-config
           # openssl
