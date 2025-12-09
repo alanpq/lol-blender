@@ -60,11 +60,14 @@
           rust-analyzer-unwrapped
           clippy
           cargo
+          cargo-watch
+          bacon
 
           python3
           python311Packages.pip
           python311Packages.virtualenv
           maturin
+          uv
           # blender
           # pkg-config
           # openssl
