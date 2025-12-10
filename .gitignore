@@ -4,4 +4,6 @@ python/wheels/
 rust_*/target
 rust_*/Cargo.lock
 
+.direnv/
+
 .lolblender/
