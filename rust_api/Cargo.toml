@@ -5,3 +5,8 @@ edition = "2024"
 
 [dependencies]
 glam = "0.30.9"
+anyhow = "1.0.98"
+
+[dependencies.pyo3]
+version = "0.25.0"
+features = ["abi3-py311", "anyhow", "extension-module"]

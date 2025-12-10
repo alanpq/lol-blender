@@ -4,5 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.98"
 nalgebra = "0.33.2"
 rust_api.path = "../rust_api"
+
+[dependencies.pyo3]
+version = "0.25.0"
+features = ["abi3-py311", "anyhow", "extension-module"]
