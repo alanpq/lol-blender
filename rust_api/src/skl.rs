@@ -8,16 +8,23 @@ use crate::Mat4;
 #[pyclass]
 pub struct Skl {
     #[pyo3(get)]
-    pub parents: Vec<Option<String>>,
-    #[pyo3(get)]
-    pub names: Vec<String>,
-    #[pyo3(get)]
-    pub ibms: Vec<Mat4>,
-    #[pyo3(get)]
-    pub locals: Vec<Mat4>,
-    #[pyo3(get)]
-    pub is_influences: Vec<bool>,
+    pub influence_lookup: HashMap<u32, String>,
 
     #[pyo3(get)]
-    pub influence_lookup: HashMap<i16, String>,
+    pub joints: Vec<Py<Joint>>,
+}
+
+#[derive(Debug)]
+#[pyclass]
+pub struct Joint {
+    #[pyo3(get, set)]
+    pub parent: Option<String>,
+    #[pyo3(get, set)]
+    pub name: String,
+    #[pyo3(get, set)]
+    pub ibm: Mat4,
+    #[pyo3(get, set)]
+    pub local: Mat4,
+    #[pyo3(get, set)]
+    pub is_influence: bool,
 }

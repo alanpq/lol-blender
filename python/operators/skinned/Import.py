@@ -136,7 +136,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             vert_uvs = list(map(lambda uvs: (uvs[0], uvs[1] * -1.0), skn.vertex_uvs))
 
             uv = mesh.uv_layers.new(name="UV_0")
-            uv.uv.foreach_set("vector", [uv for pair in [vert_uvs[l.vertex_index] for l in mesh.loops] for uv in pair])
+            # uv.uv.foreach_set("vector", [uv for pair in [vert_uvs[l.vertex_index] for l in mesh.loops] for uv in pair])
 
             # import armature
             armature = self.do_skl_import(
@@ -155,9 +155,15 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
                     mats[r.material] = len(mesh.materials) 
                     mesh.materials.append(mat)
-                for p_idx in range(r.start_index, r.index_count // 3):
-                    p = mesh.polygons[p_idx]
-                    p.material_index = mats[r.material]
+                # NOTE: why 6? this worked before as 3, which makes sense since 3 verts make a tri...
+                for p_idx in range(r.start_index, r.index_count // 6):
+                    if p_idx >= len(mesh.polygons):
+                        print("[MAT IMPORT] p_idx >= len(mesh.polygons). p_idx =", p_idx)
+                        # TODO: better warning
+                        break
+                    else:
+                        p = mesh.polygons[p_idx]
+                        p.material_index = mats[r.material]
 
             # new_collection = bpy.data.collections.new('new_collection')
             # context.scene.collection.children.link(new_collection)
@@ -190,12 +196,16 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
             context.collection.objects.link(armature_obj)
 
+            # increases performance
+            blend_indices = list(skn.vertex_blend_indices)
+            blend_weights = list(skn.vertex_blend_weights)
+
             # set up vertex groups/blend weights
             vert_groups = {}
             for vert in range(len(skn.vertex_normals)):
                 for i in range(4):
-                    blend_idx = skn.vertex_blend_indices[vert][i]
-                    blend_weight = skn.vertex_blend_weights[vert][i]
+                    blend_idx = blend_indices[vert*4 + i]
+                    blend_weight = blend_weights[vert*4 + i]
                     if blend_weight <= 0.0:
                         continue
                     if blend_idx not in vert_groups:
@@ -210,16 +220,18 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
             util_obj_select(context, armature_obj)
             util_obj_set_active(context, armature_obj)
             utils_set_mode('EDIT')
+
+            joints = list(skl.joints)
         
             # joint pass 1 - create all bones, give them names + head matrix
-            for joint in skl.joints:
+            for joint in joints:
                 bone = armature_data.edit_bones.new(joint.name)
                 # set a default tail so blender doesn't delete our bone later
                 bone.tail = Vector((0.0,0.0,1.0))
                 bone.matrix = self.global_mat @ Matrix(joint.ibm).inverted() 
 
             # joint pass 2 - establish parent-child hierarchy
-            for joint in skl.joints:
+            for joint in joints:
                 bone = armature_data.edit_bones[joint.name]
                 parent = None if joint.parent is None else armature_data.edit_bones[joint.parent]
 

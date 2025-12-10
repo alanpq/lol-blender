@@ -27,7 +27,7 @@ fn import_skn<'py>(py: Python<'py>, path: PathBuf) -> Result<Skn> {
 #[pyfunction]
 fn import_skl<'py>(py: Python<'py>, path: PathBuf) -> Result<Skl> {
     println!("importing skl: {path:?}");
-    with_context(|context| context.import_skl(path))?
+    with_context(|context| context.import_skl(py, path))?
 }
 
 #[pyfunction]

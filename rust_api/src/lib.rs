@@ -4,7 +4,7 @@ mod bone;
 pub use bone::*;
 
 mod skn;
-use pyo3::PyRef;
+use pyo3::{PyRef, Python};
 pub use skn::*;
 
 mod skl;
@@ -16,7 +16,7 @@ pub type Mat4 = [[f32; 4]; 4];
 
 pub trait Context: Send + Sync {
     fn import_skn(&self, path: PathBuf) -> Result<Skn, anyhow::Error>;
-    fn import_skl(&self, path: PathBuf) -> Result<Skl, anyhow::Error>;
+    fn import_skl(&self, py: Python<'_>, path: PathBuf) -> Result<Skl, anyhow::Error>;
 
     #[allow(clippy::too_many_arguments)]
     fn export_skn(

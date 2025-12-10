@@ -5,6 +5,11 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.98"
+glam = "0.27.0"
+
+itertools = "0.14.0"
+league-toolkit = "0.2.8"
+
 nalgebra = "0.33.2"
 rust_api.path = "../rust_api"
 
