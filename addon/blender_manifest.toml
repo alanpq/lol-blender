@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
 id = "lolblender"
-version = "0.1.0"
+version = "0.5.0"
 name = "lol-blender"
 tagline = "Importer/exporter for League of Legends files"
 maintainer = "alanpq"

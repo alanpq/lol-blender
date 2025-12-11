@@ -1007,7 +1007,7 @@ dependencies = [
 
 [[package]]
 name = "rust_api"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "glam 0.30.9",
@@ -1016,7 +1016,7 @@ dependencies = [
 
 [[package]]
 name = "rust_core"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "glam 0.27.0",
@@ -1029,7 +1029,7 @@ dependencies = [
 
 [[package]]
 name = "rust_hot"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rust_api",
  "rust_core",
@@ -1037,7 +1037,7 @@ dependencies = [
 
 [[package]]
 name = "rust_wrap"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "hot-lib-reloader",
