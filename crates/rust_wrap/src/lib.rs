@@ -5,7 +5,11 @@ use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray3, PyReadonlyArray4, PyRe
 use pyo3::prelude::*;
 
 mod hot_reloadable;
-use hot_reloadable::{handle_reload, initialize, with_context};
+
+use hot_reloadable::{initialize, with_context};
+
+#[cfg(feature = "hot_reload")]
+use hot_reloadable::handle_reload;
 
 use rust_hot::rust_api::{Bone, Skl, Skn};
 
