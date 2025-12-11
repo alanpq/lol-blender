@@ -10,18 +10,18 @@ pub use rust_hot as rust_hot_reload;
     debug_assertions,
     hot_lib_reloader::hot_module(
         dylib = "rust_hot",
-        lib_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../rust_hot/target/debug")
+        lib_dir = concat!(env!("CARGO_MANIFEST_DIR"), "crates/rust_hot/target/debug")
     )
 )]
 #[cfg_attr(
     not(debug_assertions),
     hot_lib_reloader::hot_module(
         dylib = "rust_hot",
-        lib_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../rust_hot/target/release")
+        lib_dir = concat!(env!("CARGO_MANIFEST_DIR"), "crates/rust_hot/target/release")
     )
 )]
 pub mod rust_hot_reload {
-    hot_functions_from_file!("../rust_hot/src/lib.rs");
+    hot_functions_from_file!("crates/rust_hot/src/lib.rs");
 
     #[allow(unused)]
     pub use rust_hot::*;

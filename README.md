@@ -42,14 +42,14 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 
 - Compile the `rust_wrap` crate:
   ```bash
-  cd rust_wrap
-  maturin build --release --out ../python/wheels/
+  cd crates/rust_wrap
+  maturin build --release --out ../../addon/wheels/
   ```
 
 - Take note of the output from your `maturin` command (it might differ in your case!):
   ```
   <...>
-  📦 Built wheel for CPython 3.11 to ../python/wheels/rust_wrap-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl
+  📦 Built wheel for CPython 3.11 to ../../addon/wheels/rust_wrap-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl
   ```
 
   Make sure it's listed in the `blender_manifest.toml`:
@@ -63,11 +63,11 @@ Blender plugin for League of Legends asset import/export, using [league-toolkit]
 
 - Compile the `rust_hot` crate (this is the step you'll typically repeat later):
   ```bash
-  cd rust_hot
+  cd crates/rust_hot
   cargo build --release
   ```
 
-- Open the `blend_rust/python` folder in VSCode, open the Command Palette (`Ctrl+Shift+P`), search for **"Blender: Build and Start"**, and select your Blender executable (mean the one you've installed prior).
+- Open the repository in VSCode, open the Command Palette (`Ctrl+Shift+P`), search for **"Blender: Start"**, and select your Blender executable (mean the one you've installed prior).
 
 > [!IMPORTANT]
 > Verify that the VSCode terminal shows: `creating new rust context`
@@ -83,7 +83,7 @@ For the Python parts of the extension (UI and such), use the VSCode addon:
 
 Recompile the `rust_hot` crate for changes in the `rust_core` crate:
 ```bash
-cd rust_hot/
+cd crates/rust_hot/
 cargo build --release
 ```
 
@@ -105,15 +105,15 @@ When preparing for distribution, **do not use hot reloading**.
 
 - Compile the `rust_wrap` crate without default features:
   ```bash
-  cd rust_wrap/
-  maturin build --release --no-default-features --out ../python/wheels/
+  cd crates/rust_wrap/
+  maturin build --release --no-default-features --out ../../addon/wheels/
   ```
 
 - No additional Rust steps apply in this case.
 
 - Build the extension via Blender directly:
   ```bash
-  cd blend_rust/python/
+  cd addon/
   blender --command extension build
   ```
 

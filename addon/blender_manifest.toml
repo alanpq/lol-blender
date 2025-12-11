@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
 id = "lolblender"
-version = "1.0.0"
+version = "0.1.0"
 name = "lol-blender"
 tagline = "Importer/exporter for League of Legends files"
 maintainer = "alanpq"
@@ -62,7 +62,7 @@ wheels = [
 #
 [permissions]
 # network = "Need to sync motion-capture data to server"
-files = "Import/export .skn/.skl/.anm/.sco/.sbo/etc from/to disk"
+files = "Import/export .skn/.skl/.anm/.sco/.scb/etc from/to disk"
 # clipboard = "Copy and paste bone transforms"
 
 # Optional: build settings.

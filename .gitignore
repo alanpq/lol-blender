@@ -1,9 +1,9 @@
-python/**/__pycache__/
-python/wheels/
+addon/**/__pycache__/
+addon/wheels/
 
-rust_*/target
-rust_*/Cargo.lock
+target/
 
 .direnv/
+.venv/
 
 .lolblender/

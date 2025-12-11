@@ -11,4 +11,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-rust-wrap = { path = "python/wheels/rust_wrap-0.1.0-cp311-abi3-linux_x86_64.whl" }
+rust-wrap = { path = "addon/wheels/rust_wrap-0.1.0-cp311-abi3-linux_x86_64.whl" }
