@@ -1,11 +1,19 @@
 from typing import Any
 
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, FloatProperty
 from bpy_extras.io_utils import axis_conversion, ExportHelper
 
 import os
 from mathutils import Vector, Matrix
+
+import functools
+import operator
+import numpy as np
+
+from ... import types
+
+import rust_wrap
 
 def get_weight(group: bpy.types.VertexGroup, idx):
     try:
@@ -18,12 +26,6 @@ def get_influences(vert_idx, object: bpy.types.Object):
         map(lambda g: (g[0], get_weight(g[1],vert_idx)), object.vertex_groups.items()),
         key=lambda x: -x[1]
     )[:4])
-
-class MenuExportSkinned(ExpandableUi):
-    target_id = "TOPBAR_MT_file_export"
-
-    def draw(self, context):
-        self.layout.operator(ExportSkinned.bl_idname, text="LoL Skinned Mesh (.skn/.skl)")
 
 def get_armature_for_mesh(mesh):
     modifiers = [x for x in mesh.modifiers if x.type == "ARMATURE"]
@@ -110,6 +112,7 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
     bl_options = {'INTERNAL',  'PRESET', 'UNDO'}
 
     filename_ext = ".skn"
+
     filter_glob: StringProperty( # type: ignore
         default="*.skn;*.skl",
         options={'HIDDEN'},
@@ -122,10 +125,16 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
         default=True
     ) # type: ignore
 
-    def __init__(self):
-        self.armature_obj = None
+    scale_factor: FloatProperty( # type: ignore[misc]
+        name = "Scale Factor",
+        description="How much to scale everything up by when exporting (0.01 = 1/100 scale = 100x smaller). This is the inverse of the scale factor used on import! (1/x)",
+        default=10
+    )
 
-    def invoke(self, context, event):
+    recall_mode: types.ObjectModeItems
+    armature_obj = None
+
+    def invoke(self, context, event) -> set[types.OperatorReturnItems]:
         try:
             (mesh, armature) = get_mesh_and_armature_from_context(context)
             self.mesh = mesh
@@ -133,7 +142,8 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
         except RuntimeError as e:
             self.report({'ERROR_INVALID_CONTEXT'}, str(e))
 
-        
+        if context.object is None:
+            return {'RUNNING_MODAL'}
         self.recall_mode = context.object.mode
         wm = context.window_manager
         wm.fileselect_add(self)
@@ -142,6 +152,7 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         layout = self.layout
         layout.prop(self.properties, "export_skl")
+        layout.prop(self.properties, "scale_factor")
 
     def recall(self):
         bpy.ops.object.mode_set(mode=self.recall_mode)
@@ -155,7 +166,9 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
             return False
         return True
 
-    def export_armature(self, context: bpy.types.Context, l: Any, mat):
+    def export_armature(self, context: bpy.types.Context, mat):
+        assert isinstance(self.mesh.data, bpy.types.Mesh)
+
         influences = list(map(lambda v: get_influences(v, self.mesh), range(len(self.mesh.data.vertices))))
 
         # we can't just check if a vertex group exists for a bone, because we cap a vertex's influence count to 4,
@@ -169,11 +182,11 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
         def map_bone(b: bpy.types.PoseBone):
             parent = "" if b.bone.parent is None else b.bone.parent.name
             local, ibm = compute_bone_transforms(self.armature, b, mat)
-            return (b.bone.name, l.Bone(parent, local, ibm, is_influence.get(b.name, False)))
+            return (b.bone.name, rust_wrap.Bone(parent, local, ibm, is_influence.get(b.name, False))) # type: ignore
 
 
         # map of blender bone names to league influence joint indices
-        joint_map = l.export_skl(
+        joint_map = rust_wrap.export_skl( # type: ignore
             dict(map(map_bone, self.armature.pose.bones)),
             bpy.path.ensure_ext(os.path.splitext(self.filepath)[0], ".skl") if self.export_skl else None,
         )
@@ -184,18 +197,15 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
         return influences
 
 
-    def execute(self, context: bpy.types.Context):
-        addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
-        assert isinstance(addon_prefs, LOLPrefs)
-
-        l = get_modules(addon_prefs.wheel_path)["league_toolkit"]
+    def execute(self, context: bpy.types.Context):  # type: ignore[override]
+        assert isinstance(self.mesh.data, bpy.types.Mesh)
 
         mat = axis_conversion(
             from_forward='-Y',
             from_up='Z',
             to_forward='Z',
             to_up='Y',
-        ).to_4x4()
+        ).to_4x4() @ Matrix.Scale(self.scale_factor, 4)
 
         mesh_transformed = False
 
@@ -205,28 +215,39 @@ class ExportSkinned(bpy.types.Operator, ExportHelper):
 
             # we need to build the final rig (regardless of if we're actually exporting the arm),
             # in order to get the blend weight indices we need for the skn vert buffer
-            influences = self.export_armature(context, l, mat)
+            influences = self.export_armature(context, mat)
 
-            vertices = list(
-                map(lambda v: l.Vertex(
-                    list(v[1].co.xyz),
-                    list(v[1].normal.xyz),
-                    list(map(lambda x: x[0], influences[v[0]])),
-                    list(map(lambda x: x[1], influences[v[0]])),
-                ), enumerate(self.mesh.data.vertices))
-            )
+            # vertices = list(
+            #     map(lambda v: rust_wrap.Vertex( # type: ignore
+            #         list(v[1].co.xyz), # type: ignore
+            #         list(v[1].normal.xyz), # type: ignore
+            #         list(map(lambda x: x[0], influences[v[0]])),
+            #         list(map(lambda x: x[1], influences[v[0]])),
+            #     ), enumerate(self.mesh.data.vertices))
+            # )
+
+            v_positions     = list(map(lambda v:     list(v.co.xyz), self.mesh.data.vertices)) # type: ignore
+            v_normals       = list(map(lambda v: list(v.normal.xyz), self.mesh.data.vertices)) # type: ignore
+            v_blend_indices = list(map(lambda v: list(map(lambda x: x[0], influences[v])), range(len(self.mesh.data.vertices))))
+            v_blend_weights = list(map(lambda v: list(map(lambda x: x[1], influences[v])), range(len(self.mesh.data.vertices))))
+            # v_blend_indices = [[0.0]*4] * (len(self.mesh.data.vertices))
+            # v_blend_weights =  [[0.0]*4] * (len(self.mesh.data.vertices))
+
             for tri in self.mesh.data.loop_triangles:
                 for i, v in enumerate(tri.vertices):
-                    vertices[v].normal = list(Vector(tri.split_normals[i]).xyz)
+                    v_normals[v] = list(Vector(tri.split_normals[i]).xyz) # type: ignore
             
-            l.export_skn(
+            rust_wrap.export_skn( # type: ignore
                 bpy.path.ensure_ext(self.filepath, ".skn"),
-                vertices,
-                list(map(lambda v: list(v.vertices), self.mesh.data.loop_triangles)),
-
-                influences
+                np.array(v_positions, np.float32).ravel(),
+                np.array(v_normals, np.float32).ravel(),
+                np.array(v_blend_indices, np.uint8).ravel(),
+                np.array(v_blend_weights, np.float32).ravel(),
+                np.array([], np.uint8), # vert uvs
+                np.array(list(map(lambda v: list(v.vertices), self.mesh.data.loop_triangles)), np.int64).ravel(),
             )
         finally:
+            pass
             if mesh_transformed: # undo transform if we did it
                 self.mesh.data.transform(mat.inverted())
 

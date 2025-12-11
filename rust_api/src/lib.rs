@@ -32,7 +32,7 @@ pub trait Context: Send + Sync {
 
     fn export_skl(
         &self,
-        path: PathBuf,
+        path: Option<PathBuf>,
         bones: HashMap<String, PyRef<'_, Bone>>,
     ) -> Result<HashMap<String, u8>, anyhow::Error>;
 }

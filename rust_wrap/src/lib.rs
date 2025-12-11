@@ -57,10 +57,10 @@ fn export_skn<'py>(
 
 #[pyfunction]
 fn export_skl<'py>(
-    path: PathBuf,
     bones: HashMap<String, PyRef<'_, Bone>>,
+    path: Option<PathBuf>,
 ) -> Result<HashMap<String, u8>> {
-    println!("exporting skl: {path:?}");
+    println!("exporting skl: {path:?} ");
     with_context(|context| context.export_skl(path, bones))?
 }
 
@@ -73,6 +73,8 @@ fn rust_wrap(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "hot_reload")]
     handle_reload();
+
+    m.add_class::<Bone>()?;
 
     m.add_function(wrap_pyfunction!(version, m)?)?;
 

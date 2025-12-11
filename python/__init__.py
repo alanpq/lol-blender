@@ -17,25 +17,30 @@ import bpy
 
 from .operators.skinned import IO_FH_skn_skl
 from .operators.skinned.Import import ImportSkinned
-# from .operators.skinned.Export import ExportSkinned
+from .operators.skinned.Export import ExportSkinned
 
 import rust_wrap
 
 
-def menu_func(self, context):
+def import_func(self, context):
     self.layout.operator(ImportSkinned.bl_idname, text="LoL Skinned Mesh (.skn/.skl)")
+
+def export_func(self, context):
+    self.layout.operator(ExportSkinned.bl_idname, text="LoL Skinned Mesh (.skn/.skl)")
 
 def register():
     bpy.utils.register_class(IO_FH_skn_skl)
     bpy.utils.register_class(ImportSkinned)
-    # bpy.utils.register_class(ExportSkinned)
+    bpy.utils.register_class(ExportSkinned)
     
-    bpy.types.TOPBAR_MT_file_import.append(menu_func)
+    bpy.types.TOPBAR_MT_file_import.append(import_func)
+    bpy.types.TOPBAR_MT_file_export.append(export_func)
 
 
 def unregister():
     bpy.utils.unregister_class(IO_FH_skn_skl)
     bpy.utils.unregister_class(ImportSkinned)
-    # bpy.utils.unregister_class(ExportSkinned)
+    bpy.utils.unregister_class(ExportSkinned)
 
-    bpy.types.TOPBAR_MT_file_import.remove(menu_func)
+    bpy.types.TOPBAR_MT_file_import.remove(import_func)
+    bpy.types.TOPBAR_MT_file_export.remove(export_func)

@@ -40,6 +40,7 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
     bl_options = {'PRESET', 'UNDO'}
 
     filename_ext = ".skn"
+
     filter_glob: StringProperty( # type: ignore[misc]
         default="*.skn;*.skl",
         options={'HIDDEN'},
@@ -48,11 +49,10 @@ class ImportSkinned(bpy.types.Operator, ExportHelper):
 
     scale_factor: FloatProperty( # type: ignore[misc]
         name = "Scale Factor",
-        description="How much to scale everything by when importing (0.01 = 1/100 scale = 100x smaller). Make sure to use the same scale factor when exporting!",
+        description="How much to scale everything up by when importing (0.01 = 1/100 scale = 100x smaller). Make sure to use the inverse scale factor when exporting! (1/x)",
         default=0.01
     )
     
-
     import_skl: BoolProperty( # type: ignore[misc]
         name="Import Skeleton",
         description="Whether to import the .skl, along with the .skn. This will not fail if the .skl cannot be found",
