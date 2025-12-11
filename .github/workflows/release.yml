@@ -5,7 +5,7 @@ on:
 jobs:
 
   release-addon:
-    needs: [bindings-linux, bindings-windows, bindings-macos]
+    needs: [bindings-linux, bindings-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,29 +109,29 @@ jobs:
         with:
           name: wheels-windows-${{ matrix.target }}
           path: dist/*.whl
-  bindings-macos:
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        target: [x86_64, universal2-apple-darwin]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-          architecture: x64
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --no-default-features --out dist/ -m crates/rust_wrap/Cargo.toml
-      - name: Upload wheels
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-macos-${{ matrix.target }}
-          path: dist/*.whl
+  # bindings-macos:
+  #   runs-on: macos-latest
+  #   strategy:
+  #     matrix:
+  #       target: [x86_64, universal2-apple-darwin]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: 'recursive'
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: 3.11
+  #         architecture: x64
+  #     - name: Build wheels
+  #       uses: PyO3/maturin-action@v1
+  #       with:
+  #         target: ${{ matrix.target }}
+  #         args: --release --no-default-features --out dist/ -m crates/rust_wrap/Cargo.toml
+  #     - name: Upload wheels
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: wheels-macos-${{ matrix.target }}
+  #         path: dist/*.whl
 
 permissions:
   contents: write
