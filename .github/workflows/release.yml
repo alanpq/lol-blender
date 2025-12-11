@@ -1,0 +1,138 @@
+name: Release
+on:
+  push:
+    branches: [main]
+jobs:
+
+  release-addon:
+    needs: [bindings-linux, bindings-windows, bindings-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: SebRollen/toml-action@v1.2.0
+        id: read_manifest
+        with:
+          file: 'addon/blender_manifest.toml'
+          field: 'version'
+      - name: Install Blender Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install libxxf86vm-dev -y
+          sudo apt-get install libxfixes3 -y
+          sudo apt-get install libxi-dev -y
+          sudo apt-get install libxkbcommon-x11-0 -y
+          sudo apt-get install libgl1 -y
+          sudo apt-get install libglx-mesa0 -y
+          sudo apt-get install python3 -y
+      - name: Install Requirements
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install virtualenv
+          python3 -m virtualenv venv
+          source venv/bin/activate
+          pip install pytest-blender
+          pip install blender-downloader
+      - name: Install Blender
+        run: |
+          source venv/bin/activate
+          blender_executable="$(blender-downloader ${{ matrix.blender-version }} --extract --print-blender-executable)"
+          echo "BLENDER_EXECUTABLE=${blender_executable}" >> $GITHUB_ENV
+          blender_python="$(pytest-blender --blender-executable "$blender_executable")"
+          echo "BLENDER_PYTHON=${blender_python}" >> $GITHUB_ENV
+          # Write the BLENDER_PYTHON path to the console for debugging
+          # Deactivate the virtualenv to avoid conflicts with the system python
+          deactivate
+          $blender_python -m ensurepip
+          $blender_python -m pip install -r tests/requirements.txt
+      - uses: actions/download-artifact@v4
+      - name: Collect wheels
+        run: |
+          mv -v ./wheels*/*.whl ./addon/wheels/.
+      - name: Build extension
+        run: |
+          pushd ./addon
+          # Run blender using the environment variable set by the action
+          ${{ env.BLENDER_EXECUTABLE }} --command extension build
+          mkdir artifact
+          unzip -q lol-blender-${{ steps.read_manifest.outputs.value }}.zip -d ./artifact
+          popd
+      - name: Upload Release        
+        uses: actions/upload-artifact@v4
+        with:
+          name: lol-blender_${{ github.ref_name }}-${{ github.sha }}
+          path: |
+            ./addon/artifact/*
+
+  bindings-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, i686]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto # manylinux is containerised, so no need for setup-python action
+          args: --release --no-default-features --out dist/ -m crates/rust_wrap/Cargo.toml -i python3.11 
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-${{matrix.target}}
+          path: dist/*.whl
+
+  bindings-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          architecture: ${{ matrix.target }}
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --no-default-features --out dist/ -m crates/rust_wrap/Cargo.toml
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows-${{ matrix.target }}
+          path: dist/*.whl
+  bindings-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [x86_64, universal2-apple-darwin]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          architecture: x64
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --no-default-features --out dist/ -m crates/rust_wrap/Cargo.toml
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-${{ matrix.target }}
+          path: dist/*.whl
+
+permissions:
+  contents: write
+  pull-requests: read
