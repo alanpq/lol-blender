@@ -1,3 +1,11 @@
+//! Hot reloadable core impl of our extension
+//! Only this can be hot reloaded.
+//!
+//! You must ensure any threads and resources are cleanly joined and dropped when loading a new version
+//!   - via `Drop` for our `Context` implementor `Impl`.
+//! Anything exposed to Python through `rust_wrap` should be defined in `rust_api` or `rust_hot`.
+//! New traits, functions, structs, enums, etc., and changes to them are **not reloadable**.
+
 use std::{
     collections::{BTreeMap, HashMap, VecDeque},
     fs::File,
