@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Result;
-use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray3, PyReadonlyArray4, PyReadonlyArray5};
+use numpy::PyReadonlyArray1;
 use pyo3::prelude::*;
 
 mod hot_reloadable;
@@ -23,7 +23,7 @@ pub type Vec4 = [f32; 4];
 pub type Mat4 = [[f32; 4]; 4];
 
 #[pyfunction]
-fn import_skn<'py>(py: Python<'py>, path: PathBuf) -> Result<Skn> {
+fn import_skn<'py>(_py: Python<'py>, path: PathBuf) -> Result<Skn> {
     println!("importing skn: {path:?}");
     with_context(|context| context.import_skn(path))?
 }
@@ -60,7 +60,7 @@ fn export_skn<'py>(
 }
 
 #[pyfunction]
-fn export_skl<'py>(
+fn export_skl(
     bones: HashMap<String, PyRef<'_, Bone>>,
     path: Option<PathBuf>,
 ) -> Result<HashMap<String, u8>> {

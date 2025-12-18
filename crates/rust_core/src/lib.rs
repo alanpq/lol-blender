@@ -1,13 +1,13 @@
 //! Hot reloadable core impl of our extension
 //! Only this can be hot reloaded.
 //!
-//! You must ensure any threads and resources are cleanly joined and dropped when loading a new version
-//!   - via `Drop` for our `Context` implementor `Impl`.
-//! Anything exposed to Python through `rust_wrap` should be defined in `rust_api` or `rust_hot`.
-//! New traits, functions, structs, enums, etc., and changes to them are **not reloadable**.
+//! - You must ensure any threads and resources are cleanly joined and dropped when loading a new version
+//!   (via `Drop` for our `Context` implementor `Impl`.)
+//! - Anything exposed to Python through `rust_wrap` should be defined in `rust_api` or `rust_hot`.
+//! - New traits, functions, structs, enums, etc., and changes to them are **not reloadable**.
 
 use std::{
-    collections::{BTreeMap, HashMap, VecDeque},
+    collections::{HashMap, VecDeque},
     fs::File,
     io::{BufReader, BufWriter},
 };
@@ -245,7 +245,7 @@ impl Context for Impl {
         vertex_normals: &[f32],
         vertex_blend_indices: &[u8],
         vertex_blend_weights: &[f32],
-        vertex_uvs: &[u8],
+        _vertex_uvs: &[u8],
         triangles: &[i64],
     ) -> Result<(), anyhow::Error> {
         let mut vert_buf = Vec::new();
