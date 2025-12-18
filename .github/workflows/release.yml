@@ -48,24 +48,31 @@ jobs:
           # Deactivate the virtualenv to avoid conflicts with the system python
           deactivate
       - uses: actions/download-artifact@v4
-      - name: Collect wheels
+      - name: Collect wheels & patch manifest
         run: |
           mkdir ./addon/wheels/
           mv -v ./wheels*/*.whl ./addon/wheels/.
+          ./scripts/patch-manifest.sh
       - name: Build extension
         run: |
           pushd ./addon
           # Run blender using the environment variable set by the action
           ${{ env.BLENDER_EXECUTABLE }} --command extension build
           mkdir artifact
+          mv lolblender-${{ steps.read_manifest.outputs.value }}.zip lol-blender-${{ steps.read_manifest.outputs.value }}.zip
           unzip -q lol-blender-${{ steps.read_manifest.outputs.value }}.zip -d ./artifact
           popd
-      - name: Upload Release        
+      - name: Upload Artifact        
         uses: actions/upload-artifact@v4
         with:
           name: lol-blender_${{ github.ref_name }}-${{ github.sha }}
           path: |
             ./addon/artifact/*
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: ./addon/lol-blender_${{ steps.read_manifest.outputs.value }}.zip
 
   bindings-linux:
     runs-on: ubuntu-latest
