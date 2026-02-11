@@ -1,6 +1,6 @@
 # lol-blender
 Blender plugin for League of Legends asset import/export, using [league-toolkit](https://github.com/LeagueToolkit/league-toolkit/).
-> **NOTE:** This plugin is *extremely* early in development, see [io_scene_lol](https://github.com/Daniil-SV/io_scene_lol) for a more developed importer/exporter.
+> **NOTE:** This plugin is *extremely* early in development, see [Aventurine-League-Tools](https://github.com/RitoShark/Aventurine-League-Tools) for a more developed importer/exporter.
 
 # Features
 
